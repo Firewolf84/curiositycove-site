@@ -606,14 +606,43 @@ main {
   grid-template-columns: repeat(4, minmax(64px, 96px));
 }
 .mem button {
-  aspect-ratio: 3/4;
+  position: relative;
+  height: 0;
+  padding: 0 0 133% 0;
   min-height: 0;
-  padding: 0;
   font-size: 44px;
   background: var(--blue);
-  color: transparent;
+  color: var(--ink);
   border-radius: 18px;
-  transition: transform .25s, background .25s;
+  transition: background .25s;
+  overflow: hidden;
+}
+.mem button span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mem button .fr {
+  display: none;
+}
+.mem button .bk {
+  font-size: 30px;
+  opacity: .55;
+  background-image: radial-gradient(rgba(255, 255, 255, .35) 3px, transparent 3.5px);
+  background-size: 16px 16px;
+}
+.mem button.up .fr,
+.mem button.got .fr {
+  display: flex;
+}
+.mem button.up .bk,
+.mem button.got .bk {
+  display: none;
 }
 .mem button.up {
   background: #fff;
@@ -2272,7 +2301,7 @@ let zzfxV = 0.3, zzfxX = null, zzfx = (
         mount: function(st, ok, bad) {
           var open = [], got = 0, lockB = false;
           st.innerHTML = '<div class="mem" style="grid-template-columns:repeat(' + (deck.length === 6 ? 3 : 4) + ',minmax(64px,96px))">' + deck.map(function(x, i) {
-            return '<button type="button" data-m="' + i + '" aria-label="Card ' + (i + 1) + '">' + x + "</button>";
+            return '<button type="button" data-m="' + i + '" aria-label="Card ' + (i + 1) + '"><span class="fr">' + x + '</span><span class="bk">\u26A1</span></button>';
           }).join("") + "</div>";
           st.onclick = function(ev) {
             var b = ev.target.closest("[data-m]");
