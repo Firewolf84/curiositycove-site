@@ -130,6 +130,19 @@ button[disabled] {
   background-size: 22px 22px;
   border-bottom: 4px solid var(--ink);
 }
+.bar .homebtn {
+  display: inline-grid;
+  place-items: center;
+  min-height: 52px;
+  min-width: 52px;
+  padding: 4px 12px;
+  font-size: 24px;
+  text-decoration: none;
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  box-shadow: 0 4px 0 var(--ink);
+}
 .bar button {
   min-height: 52px;
   padding: 4px 12px;
@@ -877,6 +890,7 @@ main {
 </head>
 <body>
 <header class="bar">
+  <a class="homebtn" href="../" aria-label="Curiosity Cove home page">🏠</a>
   <button type="button" data-go="map" aria-label="Islands">🏝️</button>
   <button type="button" data-go="book" aria-label="Sticker book">📒</button>
   <button type="button" id="snd" aria-label="Sound on">🔊</button>

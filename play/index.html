@@ -790,6 +790,22 @@ footer {
   box-shadow: none;
   background: rgba(255, 255, 255, .55);
 }
+.homebtn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 14px;
+  font-size: 15px;
+  font-weight: 800;
+  border: 3px solid #1d1a2e;
+  border-radius: 14px;
+  background: #fff;
+  color: #1d1a2e;
+  text-decoration: none;
+}
+.homebtn:hover {
+  background: #fff8d6;
+}
 .topnav button[aria-current=true] {
   background: #fff;
   box-shadow: 0 3px 0 #1d1a2e;
@@ -1899,6 +1915,7 @@ button.go:not([disabled]) {
   <div class="deco" id="deco" aria-hidden="true"></div>
   <div class="wrap">
     <nav class="topnav" aria-label="Game sections">
+      <a class="homebtn" href="../" aria-label="Curiosity Cove home page">🏠 Home</a>
       <button type="button" data-view="map">🗺️ Map</button>
       <button type="button" data-view="play">▶ Play</button>
       <button type="button" data-view="ach">🏆 Badges</button>

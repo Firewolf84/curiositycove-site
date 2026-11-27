@@ -26,6 +26,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .top{display:flex;align-items:center;gap:10px;padding:14px 0 10px;position:sticky;top:0;background:var(--bg);z-index:5}
 .top h2{flex:1;font-size:22px}
 .back{width:44px;height:44px;border-radius:14px;background:var(--card);box-shadow:var(--shadow);font-size:22px;font-weight:800}
+.sitehome{display:inline-grid;place-items:center;text-decoration:none;color:inherit;flex:none}.sitecorner{display:flex;justify-content:flex-end;padding-top:12px}
 .pill{display:inline-flex;align-items:center;gap:6px;background:var(--card);border-radius:99px;padding:6px 12px;font-weight:800;box-shadow:var(--shadow)}
 .btn{display:block;width:100%;min-height:56px;border-radius:18px;background:var(--sea);color:#fff;font-weight:800;font-size:19px;box-shadow:0 6px 0 #075A61;margin-top:14px;padding:10px 16px}
 .btn:active{transform:translateY(4px);box-shadow:0 2px 0 #075A61}
@@ -3980,11 +3981,11 @@ const scene = () => `<svg viewBox="0 0 400 190" aria-hidden="true"><defs><linear
 
 function viewStart() {
   if (S.profiles.length) {
-    return `<div style="padding-top:24px"><h1>Curiosity Cove</h1><p class="mut">Who's learning today?</p>
+    return `<div class="sitecorner"><a class="back sitehome" href="../" aria-label="Curiosity Cove home page">🏠</a></div><div style="padding-top:4px"><h1>Curiosity Cove</h1><p class="mut">Who's learning today?</p>
     <div class="list">${S.profiles.map(p => `<button class="item" data-act="pickp" data-id="${p.id}"><span class="ic">${p.av}</span><span class="t"><b>${esc(p.name)}</b><span>${CUR[p.cur].flag} ${CUR[p.cur].name} · ${CUR[p.cur].grades[p.grade]}</span></span><span class="pill">⭐ ${p.stars || 0}</span></button>`).join('')}</div>
     <button class="btn alt" data-act="newchild">+ Add a child</button></div>`;
   }
-  return `<div class="hero" style="margin-top:16px">${scene()}<div class="hi"><h1>Curiosity Cove</h1></div></div>
+  return `<div class="sitecorner"><a class="back sitehome" href="../" aria-label="Curiosity Cove home page">🏠</a></div><div class="hero" style="margin-top:8px">${scene()}<div class="hi"><h1>Curiosity Cove</h1></div></div>
   <h2 style="margin-top:20px">Learning that feels like playing</h2>
   <p class="mut">10 curricula in one place (CAPS, US, UK, Cambridge, IB, Australia, New Zealand, Canada, India and Singapore), with step-by-step tutorials, games, progress tracking, assessments and a Career Compass.</p>
   <button class="btn" data-act="newchild">Let's start</button><p class="small mut" style="text-align:center">Prototype · Grade 1 to matric, every core subject, with full lessons and assessments.</p>`;
@@ -4014,7 +4015,7 @@ function viewOnboard() {
 function viewHome() {
   const p = P(), c = CUR[p.cur], goal = careerBy(p.goal);
   const banner = p.cur === 'cam' ? (p.grade >= 2 && p.grade <= 4 ? `<div class="banner" style="background:#E8F8F5">🌍 ${c.grades[p.grade]}: Mathematics, English, Science and Global Perspectives follow the Cambridge Primary curriculum frameworks, with a video lesson for every topic.</div>` : `<div class="banner">🌍 Cambridge lessons for ${c.grades[p.grade]} are being written (Stages 4–6 are ready). Until then you get matching topics at the same level from our South African (CAPS) course, and every skill carries over.</div>`) : (c.live ? '' : `<div class="banner">${c.flag} ${c.name}-specific lessons are coming. For now activities follow the CAPS order at the same level, and every skill carries over.</div>`);
-  return `<div class="top"><button class="back" data-go="start" aria-label="Switch child" style="font-size:26px">${p.av}</button><h2>Hi ${esc(p.name)}!</h2><span class="pill">⭐ ${p.stars || 0}</span></div>
+  return `<div class="top"><button class="back" data-go="start" aria-label="Switch child" style="font-size:26px">${p.av}</button><h2>Hi ${esc(p.name)}!</h2><span class="pill">⭐ ${p.stars || 0}</span><a class="back sitehome" href="../" aria-label="Curiosity Cove home page">🏠</a></div>
   <div class="hero">${scene()}<div class="hi"><div class="small" style="font-weight:800">${c.flag} ${c.name} · ${c.grades[p.grade]}${p.grade === 0 ? ' · Term 1' : ''}</div></div></div>${banner}
   <div class="tiles">${SUBJ.filter(s => subjShown(s, p)).map(s => { const pr = subjProgress(p, s.id), none = !actsFor(s.id, p.grade).length; if (none) return `<button class="tile" disabled style="opacity:.55"><span class="ic" style="background:${s.col}22">${s.icon}</span><b>${sName(s.id)}</b><span class="small mut">Coming soon</span></button>`; return `<button class="tile" data-go="subject" data-s="${s.id}"><span class="ic" style="background:${s.col}22">${s.icon}</span><b>${sName(s.id)}</b><span class="small mut">${s.bonus ? 'Bonus · ' : ''}${pr}% explored</span><span class="bar"><i style="width:${pr}%;background:${s.col}"></i></span></button>`; }).join('')}
   <button class="tile" data-go="compass" style="background:var(--sea);color:#fff"><span class="ic" style="background:#ffffff33">🧭</span><b>Career Compass</b><span class="small">${goal ? goal.ic + ' ' + goal.n : 'Pick a dream job'}</span></button></div>
