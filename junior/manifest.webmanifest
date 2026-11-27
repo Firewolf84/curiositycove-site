@@ -1,0 +1,28 @@
+{
+ "name": "BOLT's Little Lab",
+ "short_name": "Little Lab",
+ "description": "BOLT's Little Lab: free coding puzzles for children aged 5 to 8. Tap-to-play, read-aloud instructions, 50 levels, stickers. No ads, no sign-up.",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "background_color": "#ffd23f",
+ "theme_color": "#ff7a1a",
+ "icons": [
+  {
+   "src": "icons/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "icons/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  },
+  {
+   "src": "icons/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}
