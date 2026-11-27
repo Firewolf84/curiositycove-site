@@ -14,14 +14,13 @@ permissions:
   pages: write
   id-token: write
 
-concurrency:
-  group: daily-pages
-  cancel-in-progress: false
-
 jobs:
   # 1) Publish the website straight away (new daily challenge included).
   publish:
     runs-on: ubuntu-latest
+    concurrency:
+      group: site-publish
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -49,6 +48,9 @@ jobs:
   voice:
     needs: publish
     runs-on: ubuntu-latest
+    concurrency:
+      group: site-voice
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
