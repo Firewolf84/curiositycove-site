@@ -117,7 +117,7 @@ table{width:100%;border-collapse:collapse;font-size:15px}td,th{padding:8px 4px;b
 })();
 </script>
 <script>
-{
+(function () {
 const $ = s => document.querySelector(s);
 const app = $('#app');
 const rint = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
@@ -7035,7 +7035,7 @@ WA('s6_code_if', [
 
 if (S.active && P()) screen = 'home';
 render();
-}
+})();
 </script>
 </body>
 </html>
