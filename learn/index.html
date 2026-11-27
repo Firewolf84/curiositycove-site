@@ -3002,6 +3002,220 @@ GP('gp5_community', 3, 'Global topic', 'Communities and belonging', '🏘️', [
   ['You can belong to…|many communities at once|only one community|no communities', 'Which is a community?|a soccer club|a single chair|a cloud', 'People with disabilities should be…|included|left out|ignored', 'A neighbourhood is…|the area around where you live|a country|a planet', 'Belonging means…|feeling accepted and part of a group|being alone|owning things', 'Community helpers include…|nurses and firefighters|only singers|nobody', 'Diversity means…|having people from many backgrounds|everyone is the same|one language only'],
   'Draw yourself in the middle of a page and draw circles around you for each community you belong to: family, school, friends, clubs. Notice how many groups you are part of.', 'Thinking a community is only about where you live.');
 
+/* ---------- v24: Phase 3, CAPS Maths gaps, Grades 6–9 ---------- */
+const LC = (id, s, g, area, title, icon, pages, bank, alt, mistake) => {
+  const learn = pages.map(p => p[1].replace(/\*\*/g, '').replace(/\n•\s*/g, ' ').replace(/\n/g, ' ')).join(' ');
+  MORE.push([id, s, g, area, title, icon, learn, pages.filter(p => p[2]).map(p => p[2]).concat(bank)]);
+  CAMTEACH[id] = { pages: pages.map(([h, t, c, ex, v]) => ({ h, t, c, ex: ex ? { q: ex[0], s: ex[1], a: ex[2] } : undefined, v })), alt, mistake };
+};
+/* ===== Grade 6 (index 5) ===== */
+LC('p3_g6_pattern', 'maths', 5, 'Patterns', 'Numeric and geometric patterns', '🔢', [
+  ['Finding the rule', 'A **number pattern** follows a rule. In 4, 7, 10, 13 … each term is **3 more** than the one before, so the rule is "add 3".', 'What is the next term in 5, 9, 13, 17, …?|21|20|22', ['Find the next two terms: 2, 6, 18, 54, …', ['Each term is multiplied by 3.', '54 × 3 = 162, 162 × 3 = 486.'], '162; 486']],
+  ['Position and term', 'A table can link the **position** of a term to its **value**. If term = position × 4, then the 10th term is 10 × 4 = 40.', 'Term = position × 5. What is the 8th term?|40|13|45'],
+  ['Shape patterns', 'Matchstick patterns grow too. 1 square uses 4 sticks, 2 squares in a row use 7, 3 squares use 10: the pattern adds 3 each time.', 'Squares in a row use 4, 7, 10, … sticks. How many sticks for 4 squares?|13|12|14']],
+  ['What is the next term: 100, 90, 80, 70, …?|60|50|65', 'What is the next term: 3, 6, 12, 24, …?|48|30|36', 'Rule: add 6, start at 2. What is the 4th term?|20|24|26', 'Term = position × 7. What is the 6th term?|42|13|49', 'What is the next term: 1, 4, 9, 16, …?|25|20|24', 'Rule: multiply by 2, start at 5. What is the 4th term?|40|20|80'],
+  'Write the pattern in a row and write the jump between every pair of terms underneath. If the jumps are all the same, that jump is the rule.',
+  'Only checking the first two terms. Always check that the rule works for every term.');
+LC('p3_g6_data', 'maths', 5, 'Data Handling', 'Mode, median and graphs', '📊', [
+  ['Collecting and organising data', 'We collect data with questionnaires or by counting, then organise it in a **tally table** or **frequency table**. Bar graphs and pie charts show the data as a picture.', 'A table that shows how often each value appears is a…|frequency table|price list|timetable'],
+  ['Mode and median', 'The **mode** is the value that appears **most often**. The **median** is the **middle** value when the data is written in order.', 'What is the mode of 3, 5, 5, 7, 9?|5|7|3', ['Find the median of 8, 2, 6, 4, 10.', ['Put the numbers in order: 2, 4, 6, 8, 10.', 'The middle one is the 3rd value.'], '6']],
+  ['Range', 'The **range** is the **biggest value minus the smallest value**. It tells you how spread out the data is.', 'What is the range of 4, 9, 2, 11?|9|11|7']],
+  ['What is the median of 1, 3, 7, 8, 9?|7|3|8', 'What is the mode of 2, 4, 4, 4, 6, 6?|4|6|2', 'What is the range of 12, 5, 20, 8?|15|20|12', 'What is the median of 15, 3, 9?|9|15|3', 'A graph that shows parts of a whole as slices is a…|pie chart|bar graph|tally table', 'Before finding the median, you must…|put the values in order|add them all|find the mode'],
+  'Mode = Most (both start with Mo). Median = Middle, like the median strip in the middle of a road. Range = from the smallest to the biggest.',
+  'Finding the median without putting the numbers in order first.');
+LC('p3_g6_prob', 'maths', 5, 'Probability', 'Probability experiments', '🎲', [
+  ['Possible outcomes', 'An **outcome** is a possible result. Tossing a coin has 2 outcomes (heads or tails). Rolling a die has 6 outcomes (1 to 6).', 'How many outcomes does rolling a normal die have?|6|2|12'],
+  ['Counting results', 'In an experiment we record how many times each outcome happens. If you toss a coin 20 times, you might get 11 heads and 9 tails. More tries give results closer to what we expect.', 'A coin is tossed 40 times. About how many heads would you expect?|20|40|10'],
+  ['Likely and unlikely', 'Some events are **certain**, some **impossible**, and many are **likely** or **unlikely**. Rolling a 7 on a normal die is impossible.', 'Rolling a number less than 7 on a normal die is…|certain|impossible|unlikely']],
+  ['How many outcomes does tossing a coin have?|2|1|6', 'A bag has 3 red and 1 blue ball. Picking red is…|likely|impossible|certain', 'Rolling an 8 on a normal die is…|impossible|likely|certain', 'A spinner has 4 equal parts. How many outcomes are there?|4|2|8', 'A die is rolled 60 times. About how many times would you expect a 6?|10|6|30'],
+  'Use real coins and dice. Tally the results in a table, then compare what happened with what you expected.',
+  'Thinking that after 3 heads in a row, tails is "due". Each toss is new; the coin does not remember.');
+LC('p3_g6_3d', 'maths', 5, 'Space & Shape', '3D objects: faces, edges and vertices', '🧊', [
+  ['Faces, edges and vertices', 'A **face** is a flat surface, an **edge** is where two faces meet, and a **vertex** is a corner. A cube has 6 faces, 12 edges and 8 vertices.', 'How many faces does a cube have?|6|8|12'],
+  ['Prisms and pyramids', 'A **prism** has two identical ends joined by rectangles. A **pyramid** has one base and triangles that meet at a point (the apex).', 'A triangular prism has how many faces?|5|6|4', ['How many edges does a square-based pyramid have?', ['4 edges around the square base.', '4 edges going up to the apex.'], '8']],
+  ['Nets', 'A **net** is a flat shape that folds up into a 3D object. A cube’s net is made of 6 squares.', 'A net of a cube is made of how many squares?|6|4|8']],
+  ['How many vertices does a cube have?|8|6|12', 'How many edges does a cube have?|12|8|6', 'How many faces does a square-based pyramid have?|5|4|6', 'How many vertices does a triangular prism have?|6|5|9', 'A ball is the shape of a…|sphere|cube|cylinder', 'A tin of beans is the shape of a…|cylinder|cone|cube'],
+  'Hold a box and touch each face, run your finger along each edge, and press each corner while you count.',
+  'Counting the same edge twice. Mark each edge as you count it.');
+LC('p3_g6_transform', 'maths', 5, 'Space & Shape', 'Transformations', '🔁', [
+  ['Three ways to move a shape', '**Translation** slides a shape. **Reflection** flips it over a mirror line. **Rotation** turns it around a point. The shape stays the same size.', 'Sliding a shape without turning it is a…|translation|rotation|reflection'],
+  ['Turning', 'A rotation is measured in turns or degrees: a quarter turn is 90°, a half turn is 180° and a full turn is 360°.', 'A half turn is…|180°|90°|360°'],
+  ['Enlargement', 'An **enlargement** makes a shape bigger or smaller but keeps the same shape. Enlarging by 2 doubles every length.', 'A 3 cm side is enlarged by 2. The new side is…|6|5|9']],
+  ['A mirror image is a…|reflection|translation|rotation', 'A quarter turn is…|90°|45°|180°', 'Turning a shape around a point is a…|rotation|translation|reflection', 'A 4 cm side is enlarged by 3. The new side is…|12|7|43', 'After a translation, the shape is…|the same size and shape|bigger|upside down'],
+  'Cut a shape out of paper. Slide it (translation), flip it over (reflection) and turn it with a pencil in one corner (rotation).',
+  'Mixing up reflection and rotation. A reflection makes a mirror image; a rotation keeps the shape the same way round.');
+LC('p3_g6_time', 'maths', 5, 'Measurement', 'Time: 24-hour clock and time differences', '⏰', [
+  ['12-hour and 24-hour time', 'In 24-hour time, afternoon hours carry on counting past 12: 1 p.m. is **13:00**, 6:30 p.m. is **18:30**. To change p.m. times, add 12 to the hour.', '4:15 p.m. in 24-hour time is…|16:15|14:15|04:15'],
+  ['How long?', 'To find how long something takes, count on in steps: to the next full hour, then the hours, then the minutes.', 'From 09:40 to 10:15 is how many minutes?|35|25|45', ['A film starts at 14:35 and ends at 16:10. How long is it?', ['14:35 to 15:00 is 25 min.', '15:00 to 16:00 is 1 h.', '16:00 to 16:10 is 10 min.'], '1 hour 35 minutes']],
+  ['Time units', '60 seconds = 1 minute, 60 minutes = 1 hour, 24 hours = 1 day, 7 days = 1 week.', 'How many minutes are in 3 hours?|180|300|120']],
+  ['21:00 is…|9 p.m.|11 p.m.|9 a.m.', 'How many hours are in 2 days?|48|24|36', 'From 13:50 to 14:20 is how many minutes?|30|70|40', '7:45 a.m. in 24-hour time is…|07:45|19:45|17:45', 'How many seconds are in 5 minutes?|300|500|60', 'Half an hour is how many minutes?|30|50|15'],
+  'Draw a number line from the start time to the end time and mark the jumps: to the next hour, then whole hours, then the leftover minutes.',
+  'Subtracting times like ordinary numbers (16:10 − 14:35). There are 60 minutes in an hour, not 100.');
+LC('p3_g6_perim', 'maths', 5, 'Measurement', 'Perimeter and area', '📐', [
+  ['Perimeter', '**Perimeter** is the distance all the way **around** a shape. Add all the sides. A rectangle 5 cm by 3 cm has perimeter 5 + 3 + 5 + 3 = 16 cm.', 'A square has sides of 4 cm. What is its perimeter?|16|8|12'],
+  ['Area', '**Area** is the space **inside** a shape, measured in square units (cm²). Area of a rectangle = length × breadth.', 'A rectangle is 6 cm by 4 cm. What is its area?|24|20|10', ['A garden is 12 m long and 5 m wide. Find the area and the perimeter.', ['Area = 12 × 5 = 60 m².', 'Perimeter = 12 + 5 + 12 + 5 = 34 m.'], '60 m² and 34 m']],
+  ['Shapes made of rectangles', 'Split an L-shape into two rectangles, find each area and add them.', 'Two rectangles of 6 cm² and 9 cm² make one shape. Its area is…|15|54|3']],
+  ['A rectangle is 7 cm by 2 cm. What is its perimeter?|18|14|9', 'A square has sides of 9 cm. What is its area?|81|36|18', 'Area is measured in…|square units|metres only|litres', 'A rectangle has area 30 cm² and length 6 cm. Its breadth is…|5|24|36', 'An equilateral triangle has sides of 5 cm. Its perimeter is…|15|10|25'],
+  'Perimeter: walk around the edge of a room. Area: count how many square tiles cover the floor.',
+  'Mixing up perimeter and area, or writing cm for area instead of cm².');
+LC('p3_g6_numsent', 'maths', 5, 'Patterns', 'Number sentences', '⚖️', [
+  ['What is a number sentence?', 'A **number sentence** uses numbers, operations and an = sign: 25 + ▢ = 40. The box stands for the missing number.', '25 + ▢ = 40. ▢ = …|15|65|25'],
+  ['Using inverse operations', 'Undo the operation: + and − undo each other, × and ÷ undo each other. In ▢ × 8 = 96, ▢ = 96 ÷ 8 = 12.', '▢ × 6 = 54. ▢ = …|9|48|60', ['Solve ▢ ÷ 7 = 13.', ['The inverse of ÷ 7 is × 7.', '13 × 7 = 91.'], '91']],
+  ['Writing a number sentence', 'Turn a story into a number sentence. "Thabo had some marbles and won 18 more. Now he has 50": ▢ + 18 = 50, so ▢ = 32.', 'I think of a number and subtract 14. The answer is 30. My number is…|44|16|34']],
+  ['▢ − 25 = 60. ▢ = …|85|35|75', '120 ÷ ▢ = 10. ▢ = …|12|110|1 200', '▢ + 37 = 100. ▢ = …|63|137|73', '7 × ▢ = 84. ▢ = …|12|77|14', 'I double a number and get 46. The number is…|23|92|44'],
+  'Read the number sentence aloud with "what number" in place of the box: "What number times 6 gives 54?"',
+  'Using the same operation instead of the inverse one, e.g. adding 18 again instead of subtracting it.');
+/* ===== Grade 7 (index 6) ===== */
+LC('p3_g7_frac', 'maths', 6, 'Fractions', 'Common fractions: all four operations', '🍕', [
+  ['Adding and subtracting', 'Make the denominators the same first (find the LCM), then add or subtract the numerators. ½ + ⅓ = 3/6 + 2/6 = 5/6.', '¼ + ½ = …|3/4|2/6|1/6'],
+  ['Multiplying', 'Multiply the numerators and multiply the denominators: ⅔ × ¾ = 6/12 = ½. Simplify at the end.', '½ × ⅗ = …|3/10|4/7|1/10'],
+  ['Dividing', 'To divide by a fraction, **multiply by its reciprocal** (flip it): ¾ ÷ ½ = ¾ × 2/1 = 6/4 = 1½.', '2/5 ÷ 1/5 = …|2|2/25|1/2', ['Calculate 2½ + 1¾.', ['Add the whole numbers: 2 + 1 = 3.', 'Add the fractions: ½ + ¾ = 2/4 + 3/4 = 5/4 = 1¼.', '3 + 1¼.'], '4¼']]],
+  ['5/6 − 1/3 = …|1/2|4/3|1/3', '⅔ of 18 is…|12|6|9', '3/4 × 8 = …|6|24|3', '1/2 ÷ 1/4 = …|2|1/8|1/2', 'Write 9/4 as a mixed number.|2¼|4¼|2½', 'Simplify 12/16.|3/4|6/8|2/3'],
+  'Draw a fraction wall or fold paper strips to see that ½ is the same as 2/4 and 3/6.',
+  'Adding the denominators: ½ + ⅓ is not 2/5.');
+LC('p3_g7_dec', 'maths', 6, 'Decimals', 'Decimal fractions', '🔟', [
+  ['Place value', 'In 3,47 the 4 is **tenths** and the 7 is **hundredths**. 3,47 = 3 + 4/10 + 7/100.', 'In 5,82, the 8 stands for…|8 tenths|8 hundredths|8 ones'],
+  ['Ordering and rounding', 'Compare digit by digit from the left: 0,5 is bigger than 0,45. To round 4,76 to one decimal place, look at the hundredths: 6 rounds up, so 4,8.', 'Round 6,34 to one decimal place.|6,3|6,4|6'],
+  ['Calculating', 'Line up the commas to add or subtract. To multiply, ignore the commas, multiply, then count the decimal places: 0,3 × 0,2 = 0,06.', '0,4 × 0,3 = …|0,12|1,2|0,7', ['Calculate 12,5 − 4,75.', ['Write 12,50 − 4,75 with the commas lined up.', 'Subtract.'], '7,75']]],
+  ['Which is bigger: 0,7 or 0,65?|0,7|0,65|They are equal', '3,6 + 2,45 = …|6,05|5,105|6,5', '2,5 × 10 = …|25|0,25|250', '4,8 ÷ 4 = …|1,2|12|0,12', 'Write 3/4 as a decimal.|0,75|0,34|7,5', '0,6 × 5 = …|3|0,3|30'],
+  'Use money: R3,47 is 3 rand, 4 ten-cent coins and 7 one-cent amounts.',
+  'Thinking 0,45 is bigger than 0,5 because 45 is bigger than 5. Write 0,5 as 0,50 to compare.');
+LC('p3_g7_func', 'maths', 6, 'Functions', 'Input and output (flow diagrams)', '🔀', [
+  ['Flow diagrams', 'A **flow diagram** takes an input, applies a rule and gives an output. Input 4 → ×3 → +2 → output 14.', 'Input 5 → × 2 → + 1. Output = …|11|12|10'],
+  ['Tables and rules', 'A table shows inputs (x) and outputs (y). If y = 4x − 1, then x = 3 gives y = 11.', 'y = 3x + 2. If x = 4, y = …|14|12|20', ['Find the rule: x = 1, 2, 3 gives y = 5, 8, 11.', ['y goes up by 3 each time, so the rule has 3x.', '3 × 1 = 3, and 5 − 3 = 2.'], 'y = 3x + 2']],
+  ['Working backwards', 'To find the input from the output, reverse each step: output 20 from "×4" means the input was 20 ÷ 4 = 5.', 'Rule: × 5. Output 35. Input = …|7|30|40']],
+  ['y = 2x − 3. If x = 6, y = …|9|8|15', 'y = x² + 1. If x = 3, y = …|10|7|9', 'Rule: + 7. Output 19. Input = …|12|26|13', 'x = 1, 2, 3 gives y = 4, 8, 12. The rule is…|y = 4x|y = x + 3|y = 2x', 'Input 10 → ÷ 2 → − 3. Output = …|2|7|5'],
+  'Think of a machine: a number goes in, the machine does the same thing to every number, and a new number comes out.',
+  'Doing the steps in the wrong order. Follow the arrows from left to right.');
+LC('p3_g7_lines', 'maths', 6, 'Geometry', 'Lines and angles', '📏', [
+  ['Kinds of lines', '**Parallel** lines never meet (like train tracks). **Perpendicular** lines meet at **90°**. A line segment has two end points; a ray has one.', 'Lines that meet at 90° are…|perpendicular|parallel|curved'],
+  ['Angles on a line', 'Angles on a straight line add up to **180°**. Angles around a point add up to **360°**.', 'Two angles on a straight line: one is 110°. The other is…|70|80|250', ['Three angles around a point are 120°, 150° and x. Find x.', ['Angles around a point add up to 360°.', '360 − 120 − 150.'], 'x = 90°']],
+  ['Vertically opposite angles', 'When two lines cross, the angles opposite each other are **equal**.', 'Two lines cross. One angle is 65°. The vertically opposite angle is…|65|115|25']],
+  ['Angles on a straight line add up to…|180°|90°|360°', 'Angles around a point add up to…|360°|180°|270°', 'An angle between 90° and 180° is…|obtuse|acute|reflex', 'One of two angles on a line is 45°. The other is…|135|45|315', 'A 90° angle is a…|right angle|straight angle|reflex angle'],
+  'Stand with your arms out in a straight line: that is 180°. Turn all the way round: that is 360°.',
+  'Thinking angles on a straight line add up to 360°.');
+LC('p3_g7_surf', 'maths', 6, 'Measurement', 'Surface area of cubes and prisms', '📦', [
+  ['What is surface area?', '**Surface area** is the total area of all the faces of a 3D object. Imagine unfolding a box into its net and finding the area of the net.', 'Surface area is the total area of all the…|faces|edges|corners'],
+  ['Cubes', 'A cube has 6 equal square faces, so surface area = 6 × side × side. A 3 cm cube: 6 × 9 = 54 cm².', 'A cube has sides of 2 cm. Its surface area is…|24|8|12'],
+  ['Rectangular prisms', 'A box has 3 pairs of equal faces: SA = 2(lb + lh + bh).', 'A box is 4 × 3 × 2 cm. lb = 12, lh = 8, bh = 6. SA = …|52|26|24', ['Find the surface area of a box 5 cm by 2 cm by 1 cm.', ['lb = 10, lh = 5, bh = 2.', '2 × (10 + 5 + 2) = 2 × 17.'], '34 cm²']]],
+  ['A cube has sides of 5 cm. Its surface area is…|150|125|25', 'A cube has sides of 1 cm. Its surface area is…|6|1|12', 'Surface area is measured in…|cm²|cm³|cm', 'How many faces does a rectangular prism have?|6|4|8', 'A cube has sides of 10 cm. Its surface area is…|600|1 000|100'],
+  'Cut open a cereal box and lay it flat. Measure each rectangle, find its area and add them all.',
+  'Confusing surface area (cm², outside covering) with volume (cm³, space inside).');
+LC('p3_g7_data', 'maths', 6, 'Data Handling', 'Mean, median, mode and range', '📊', [
+  ['The mean', 'The **mean** (average) = total of all values ÷ number of values. Marks 6, 8, 10: mean = 24 ÷ 3 = 8.', 'What is the mean of 4, 6 and 8?|6|18|4'],
+  ['Comparing the averages', 'Mean, median and mode are all "averages". The **median** is better when one value is very big or very small (an outlier).', 'Find the mean of 2, 4, 6, 8, 10.|6|30|5', ['Find the mean, median, mode and range of 3, 5, 5, 7, 10.', ['Mean: 30 ÷ 5 = 6.', 'Median: the middle value is 5. Mode: 5.', 'Range: 10 − 3 = 7.'], 'mean 6, median 5, mode 5, range 7']],
+  ['Graphs', 'Bar graphs compare groups, pie charts show parts of a whole and line graphs show change over time.', 'To show temperature over a week, the best graph is a…|line graph|pie chart|tally table']],
+  ['The mean of 10, 20 and 30 is…|20|60|30', 'What is the median of 4, 8, 1, 9, 3?|4|8|1', 'What is the range of 15, 3, 22, 9?|19|22|25', 'An unusually big or small value is an…|outlier|average|mode', 'Five scores have a total of 45. The mean is…|9|45|5'],
+  'Mean is like sharing: if three friends have 6, 8 and 10 sweets and they share equally, each gets 8.',
+  'Forgetting to divide by how many values there are when finding the mean.');
+LC('p3_g7_prob', 'maths', 6, 'Probability', 'Probability as a fraction', '🎲', [
+  ['Probability', 'Probability = number of favourable outcomes ÷ total number of outcomes. Rolling a 4 on a die: 1/6.', 'The probability of getting heads on a coin is…|1/2|1|1/6'],
+  ['The probability scale', 'Probability goes from **0 (impossible)** to **1 (certain)**. An even chance is ½.', 'An impossible event has probability…|0|1|1/2', ['A bag has 3 red, 5 blue and 2 green beads. What is P(blue)?', ['Total beads: 3 + 5 + 2 = 10.', 'Favourable (blue): 5.'], '5/10 = 1/2']],
+  ['Relative frequency', 'In an experiment, relative frequency = times it happened ÷ number of trials. With many trials it gets close to the probability.', 'A coin lands heads 27 times in 50 tosses. The relative frequency of heads is…|27/50|27|1/2']],
+  ['P(rolling an even number on a die) = …|1/2|1/6|1/3', 'P(rolling a 7 on a normal die) = …|0|1/7|1', 'A spinner has 8 equal parts, 3 are red. P(red) = …|3/8|3/5|1/8', 'A certain event has probability…|1|0|1/2', 'A bag has 4 red and 6 blue balls. P(red) = …|2/5|4/6|2/3'],
+  'Count everything that could happen (the bottom number), then count the ones you want (the top number).',
+  'Writing a probability greater than 1. Probability is never bigger than 1.');
+LC('p3_g7_finance', 'maths', 6, 'Finance', 'Profit, loss, discount and VAT', '💵', [
+  ['Profit and loss', 'Profit = selling price − cost price. If the answer is negative, it is a **loss**.', 'Bought for R80, sold for R110. Profit = …|R30|R190|R110'],
+  ['Discount', 'A discount takes money off. 20% off R250: 20% of 250 = R50, so you pay R200.', '10% discount on R300. You pay…|R270|R30|R290', ['A jacket costs R480. It is on sale at 25% off. What is the sale price?', ['25% of 480 = ¼ × 480 = R120.', '480 − 120.'], 'R360']],
+  ['VAT', 'In South Africa **VAT is 15%**. Price with VAT = price × 1,15. R200 + VAT = R230.', 'VAT on R100 is…|R15|R1,15|R115']],
+  ['Cost R45, sold for R60. Profit = …|R15|R105|R60', 'Cost R90, sold for R70. This is a loss of…|R20|R160|R70', '50% off R140. You pay…|R70|R90|R50', 'R400 excluding VAT. Price including 15% VAT = …|R460|R415|R340', 'Budget: income R5 000, expenses R3 800. Savings = …|R1 200|R8 800|R1 800'],
+  'Use a shop catalogue. Pick an item, take off the discount, then add VAT, and check with a calculator.',
+  'Adding the discount instead of subtracting it, or using 14% for VAT (South Africa uses 15%).');
+/* ===== Grade 8 (index 7) ===== */
+LC('p3_g8_explaws', 'maths', 7, 'Exponents', 'Laws of exponents', '⚡', [
+  ['Multiplying and dividing powers', 'Same base: **add** the exponents when multiplying (a³ × a² = a⁵) and **subtract** when dividing (a⁷ ÷ a³ = a⁴).', 'x⁴ × x³ = …|x^7|x^12|x^1'],
+  ['Power of a power', '(a²)³ = a⁶: **multiply** the exponents. Also (ab)² = a²b².', '(y³)² = …|y^6|y^5|y^9', ['Simplify (2x³)².', ['Square the 2: 4.', 'Multiply the exponents: x^(3×2) = x⁶.'], '4x⁶']],
+  ['Zero exponent', 'Anything (except 0) to the power 0 is **1**: 5⁰ = 1, x⁰ = 1.', '7⁰ = …|1|0|7']],
+  ['2³ × 2² = …|32|64|16', 'a⁹ ÷ a³ = …|a^6|a^3|a^12', '(3²)² = …|81|36|12', '10⁰ = …|1|10|0', '√(144) = …|12|72|14', '∛(27) = …|3|9|13'],
+  'Write it out: a³ × a² = (a × a × a) × (a × a) = five a’s multiplied, so a⁵.',
+  'Multiplying the exponents when you should add them: a³ × a² is a⁵, not a⁶.');
+LC('p3_g8_pattern', 'maths', 7, 'Patterns', 'Number patterns: the general rule', '🔢', [
+  ['Constant difference', 'If a pattern goes up by the same amount each time, the rule is Tn = (difference) × n + (something). 5, 8, 11, 14: difference 3, so Tn = 3n + 2.', 'Pattern 4, 6, 8, 10. The rule is Tn = …|2n + 2|2n|n + 4'],
+  ['Using the rule', 'Substitute the position: if Tn = 3n + 2, then T₂₀ = 3(20) + 2 = 62.', 'Tn = 5n − 1. T₁₀ = …|49|51|50', ['Which term of Tn = 4n + 3 is equal to 83?', ['4n + 3 = 83.', '4n = 80.'], 'n = 20, the 20th term']],
+  ['Other patterns', 'Square numbers 1, 4, 9, 16 … have rule Tn = n². Patterns can also multiply: 3, 6, 12, 24 doubles each time.', 'Tn = n². T₇ = …|49|14|7']],
+  ['Pattern 7, 12, 17, 22. The next term is…|27|26|32', 'Tn = 2n + 5. T₁ = …|7|5|10', 'Pattern 10, 20, 30, 40. The rule is Tn = …|10n|n + 10|10', 'Tn = 6n − 4. T₅ = …|26|30|24', 'Pattern 1, 4, 9, 16. The 6th term is…|36|25|30'],
+  'Write the term number above each term. Ask: "What do I do to the term number to get the term?"',
+  'Using the first term as the number in front of n. In 5, 8, 11 the rule is 3n + 2, not 5n.');
+LC('p3_g8_graphs', 'maths', 7, 'Functions', 'Graphs: reading and drawing', '📈', [
+  ['Points on a grid', 'A point is written (x; y): first go **across** (x), then **up or down** (y). The origin is (0; 0).', 'The point (3; 5) is 3 units across and 5 units…|up|down|left'],
+  ['Straight-line graphs', 'Make a table from the rule, plot the points and join them. y = 2x + 1 gives (0; 1), (1; 3), (2; 5).', 'For y = 2x + 1, when x = 3, y = …|7|6|5', ['Where does y = 3x − 6 cut the x-axis?', ['On the x-axis, y = 0.', '0 = 3x − 6, so 3x = 6.'], 'x = 2, the point (2; 0)']],
+  ['Describing graphs', 'A graph can **increase** (go up from left to right), **decrease**, or stay **constant**. Steeper lines change faster.', 'A graph that goes down from left to right is…|decreasing|increasing|constant']],
+  ['The point on the y-axis has x = …|0|1|y', 'For y = x − 4, when x = 10, y = …|6|14|−6', 'Where does y = x + 5 cut the y-axis?|5|−5|0', 'A horizontal line shows a value that is…|constant|increasing|decreasing', 'For y = −2x, when x = 3, y = …|−6|6|−5'],
+  'Think of a lift and a corridor: walk along the corridor (x) first, then take the lift up or down (y).',
+  'Swapping x and y when plotting. Always go across first, then up.');
+LC('p3_g8_congruent', 'maths', 7, 'Geometry', 'Congruent and similar triangles', '🔺', [
+  ['Congruent triangles', '**Congruent** shapes are exactly the same shape and size. Triangles are congruent if they match by SSS, SAS, AAS (or ASA) or RHS.', 'Congruent triangles have the same shape and the same…|size|colour|position'],
+  ['Similar triangles', '**Similar** triangles have the same shape but may be different sizes: the angles are equal and the sides are in **proportion**.', 'Similar triangles have equal…|angles|areas|perimeters'],
+  ['Using proportion', 'If triangle B is twice as big as triangle A, every side of B is twice the matching side of A.', 'Triangle A has a side of 4 cm. Similar triangle B is 3 times as big. The matching side is…|12|7|43', ['Triangles PQR and XYZ are similar. PQ = 6, QR = 8, XY = 9. Find YZ.', ['Scale factor = 9 ÷ 6 = 1,5.', 'YZ = 8 × 1,5.'], 'YZ = 12']]],
+  ['RHS stands for right angle, hypotenuse and…|side|sum|shape', 'SSS means three pairs of equal…|sides|angles|areas', 'Two triangles with angles 50°, 60°, 70° are…|similar|always congruent|not related', 'A triangle has sides 3, 4, 5. A similar triangle has sides 6, 8 and…|10|9|12', 'Congruent shapes fit exactly on top of each other. True or false?|True|False|Only squares'],
+  'Congruent = identical twins. Similar = a photo and its enlargement.',
+  'Thinking that three equal angles (AAA) prove triangles congruent. They only prove that the triangles are similar.');
+LC('p3_g8_quad', 'maths', 7, 'Geometry', 'Quadrilaterals and their properties', '🔷', [
+  ['The family of quadrilaterals', 'A **quadrilateral** has 4 sides and its angles add up to **360°**. Parallelograms, rectangles, rhombuses, squares, trapeziums and kites are all quadrilaterals.', 'The angles of a quadrilateral add up to…|360°|180°|90°'],
+  ['Properties', 'Parallelogram: opposite sides parallel and equal, opposite angles equal. Rectangle: all angles 90°. Rhombus: all sides equal. Square: all sides equal and all angles 90°. Trapezium: one pair of parallel sides. Kite: two pairs of equal adjacent sides.', 'A quadrilateral with exactly one pair of parallel sides is a…|trapezium|kite|rhombus'],
+  ['Finding angles', 'Use the 360° rule or the properties to find missing angles.', 'Three angles of a quadrilateral are 90°, 90° and 100°. The fourth is…|80|100|90', ['In parallelogram ABCD, angle A = 70°. Find angles B, C and D.', ['Opposite angles are equal: C = 70°.', 'Co-interior angles add to 180°: B = 110°, and D = 110°.'], 'B = 110°, C = 70°, D = 110°']]],
+  ['A square is a special…|rectangle|trapezium|kite', 'The diagonals of a rhombus meet at…|90°|45°|180°', 'Opposite angles of a parallelogram are…|equal|always 90°|supplementary', 'A quadrilateral has angles 80°, 100°, 80° and x. x = …|100|80|360', 'All sides equal but angles not 90°: this is a…|rhombus|rectangle|trapezium'],
+  'Build the shapes with straws or sticks. Push a square sideways to see it become a rhombus.',
+  'Thinking a square is not a rectangle. A square has all the properties of a rectangle, plus equal sides.');
+LC('p3_g8_transform', 'maths', 7, 'Geometry', 'Transformations on the grid', '🔁', [
+  ['Translations', 'A translation moves every point the same way. "3 right and 2 up" changes (x; y) to (x + 3; y + 2).', 'Translate (1; 4) 2 units right. New point: …|(3; 4)|(1; 6)|(−1; 4)'],
+  ['Reflections', 'Reflect in the **x-axis**: (x; y) → (x; −y). Reflect in the **y-axis**: (x; y) → (−x; y).', 'Reflect (2; 5) in the x-axis.|(2; −5)|(−2; 5)|(5; 2)', ['Reflect A(−3; 4) in the y-axis, then translate it 1 unit down.', ['Reflection in the y-axis: (3; 4).', 'Down 1: (3; 3).'], "A'' = (3; 3)"]],
+  ['Enlargements', 'An enlargement by scale factor k from the origin: (x; y) → (kx; ky). Area is multiplied by k².', 'Enlarge (2; 3) by a factor of 2 from the origin.|(4; 6)|(4; 3)|(2; 6)']],
+  ['Reflect (4; 1) in the y-axis.|(−4; 1)|(4; −1)|(1; 4)', 'Translate (5; 5) 3 units down.|(5; 2)|(2; 5)|(5; 8)', 'A shape is enlarged by a factor of 3. Its area is multiplied by…|9|3|6', 'A reflection in the x-axis changes the sign of…|y|x|both', 'After a rotation, the shape stays…|the same size|bigger|smaller'],
+  'Use tracing paper: trace the shape, then slide, flip or turn the paper to see where it lands.',
+  'Changing the wrong coordinate when reflecting: reflecting in the x-axis changes y, not x.');
+LC('p3_g8_finance', 'maths', 7, 'Finance', 'Hire purchase, exchange rates and budgets', '💳', [
+  ['Hire purchase', 'With **hire purchase (HP)** you pay a deposit and then monthly instalments. You pay more than the cash price because of interest.', 'Deposit R500 plus 12 payments of R200. Total paid = …|R2 900|R2 400|R700'],
+  ['Exchange rates', 'An exchange rate tells you how much one currency is worth in another. If $1 = R18, then $50 = 50 × 18 = R900.', 'If £1 = R23, then £10 = …|R230|R33|R2,30', ['A phone costs R6 000 cash, or R1 000 deposit plus 24 payments of R260. How much more does HP cost?', ['HP total: 1 000 + 24 × 260 = 1 000 + 6 240 = R7 240.', '7 240 − 6 000.'], 'R1 240 more']],
+  ['Budgets', 'A budget compares **income** and **expenses**. Fixed expenses (rent) stay the same; variable expenses (electricity) change.', 'Rent is usually a…|fixed expense|variable expense|kind of income']],
+  ['If $1 = R18, then $20 = …|R360|R38|R90', 'If €1 = R20, how many euros is R400?|20|8 000|380', 'Cash price R3 000, HP total R3 600. Extra cost = …|R600|R6 600|R300', 'Money coming in is called…|income|expenses|debt', 'Income R12 000, expenses R10 500. Left over = …|R1 500|R2 500|R22 500'],
+  'Look at a real advert that shows a cash price and an HP price, and work out how much extra the HP option costs.',
+  'Forgetting to include the deposit when working out the total HP cost.');
+/* ===== Grade 9 (index 8) ===== */
+LC('p3_g9_numsys', 'maths', 8, 'Numbers', 'The number system and scientific notation', '🔢', [
+  ['Kinds of numbers', 'Natural numbers (1, 2, 3 …), whole numbers (0, 1, 2 …), integers (… −1, 0, 1 …), **rational** numbers (can be written as a fraction) and **irrational** numbers (like √2 and π, which cannot).', 'Which number is irrational?|√2|0,5|3/4'],
+  ['Scientific notation', 'Write very big or small numbers as a × 10ⁿ with 1 ≤ a < 10. 4 500 000 = 4,5 × 10⁶ and 0,0003 = 3 × 10⁻⁴.', '6 000 in scientific notation is…|6 × 10³|6 × 10⁴|60 × 10²', ['Calculate (2 × 10³) × (4 × 10⁵).', ['Multiply the numbers: 2 × 4 = 8.', 'Add the exponents: 10³⁺⁵ = 10⁸.'], '8 × 10⁸']],
+  ['Ratio and rate', 'A **ratio** compares quantities (2 : 3). A **rate** compares different units (km/h). Divide R500 in the ratio 2 : 3: 5 parts, each R100, so R200 and R300.', 'Divide 40 in the ratio 1 : 3. The bigger part is…|30|10|13']],
+  ['Which number is rational?|0,25|π|√3', '3,2 × 10⁴ = …|32 000|3 200|320 000', '0,005 in scientific notation is…|5 × 10⁻³|5 × 10³|0,5 × 10⁻²', 'A car travels 240 km in 3 hours. Its speed is…|80|720|60', 'Simplify the ratio 15 : 25.|3 : 5|5 : 3|1 : 10'],
+  'Count how many places the comma moves: 4 500 000 → 4,5 means 6 places to the left, so × 10⁶.',
+  'Writing 45 × 10⁵ instead of 4,5 × 10⁶. The first number must be at least 1 and less than 10.');
+LC('p3_g9_eqns', 'maths', 8, 'Algebra', 'Equations, including quadratic equations', '⚖️', [
+  ['Linear equations', 'Get x alone by doing the same to both sides. 3x − 5 = 16, so 3x = 21 and x = 7.', 'Solve 2x + 3 = 11.|4|7|8'],
+  ['Equations with brackets and fractions', 'Expand brackets first. For fractions, multiply both sides by the LCD. x/2 + 1 = 5 gives x/2 = 4, so x = 8.', 'Solve 3(x − 2) = 12.|6|2|4', ['Solve x/3 − 2 = 4.', ['Add 2: x/3 = 6.', 'Multiply by 3.'], 'x = 18']],
+  ['Quadratic equations by factorising', 'Make one side 0, factorise, then set each factor to 0. x² − 5x + 6 = 0 → (x − 2)(x − 3) = 0 → x = 2 or x = 3.', 'x(x − 4) = 0. The solutions are x = 0 or x = …|4|−4|0']],
+  ['Solve 5x = 35.|7|30|40', 'Solve 4x − 7 = 2x + 9.|8|1|16', 'Solve x² = 49 (x positive).|7|24,5|49', '(x + 3)(x − 1) = 0. x = −3 or x = …|1|−1|3', 'Solve 2(x + 4) = 20.|6|8|12'],
+  'Think of a balance scale: whatever you do to one side, do to the other so it stays balanced.',
+  'Dividing both sides by x in x² = 4x, which loses the answer x = 0. Factorise instead: x(x − 4) = 0.');
+LC('p3_g9_algfrac', 'maths', 8, 'Algebra', 'Algebraic fractions', '➗', [
+  ['Simplifying', 'Factorise the top and the bottom, then cancel common **factors**: (x² − 9)/(x − 3) = (x − 3)(x + 3)/(x − 3) = x + 3.', 'Simplify 6x/3.|2x|3x|2'],
+  ['Adding and subtracting', 'Use a common denominator: x/2 + x/3 = 3x/6 + 2x/6 = 5x/6.', 'x/4 + x/4 = …|x/2|2x/8|x/8', ['Simplify (2x + 4)/2.', ['Factorise the numerator: 2(x + 2).', 'Cancel the common factor 2.'], 'x + 2']],
+  ['Multiplying and dividing', 'Multiply tops and bottoms, factorise and cancel. Dividing = multiply by the reciprocal.', '(x/3) × (6/x) = …|2|x²/2|18']],
+  ['Simplify 10a/5.|2a|5a|2', 'x/5 + 2x/5 = …|3x/5|3x/10|2x²/5', 'Simplify (x² + x)/x.|x + 1|x²|2x', 'Simplify 4ab/2b.|2a|2ab|2', 'You can only cancel common…|factors|terms|signs'],
+  'Cancelling works like simplifying 6/9 to 2/3: you divide the top and bottom by the same factor.',
+  'Cancelling terms instead of factors: (x + 3)/3 is not x.');
+LC('p3_g9_construct', 'maths', 8, 'Geometry', 'Constructions with compass and ruler', '✏️', [
+  ['Tools', 'A **compass** draws arcs and circles and copies lengths. A **ruler** (straight edge) draws lines. A protractor measures angles.', 'Which tool draws arcs?|compass|protractor|calculator'],
+  ['Bisecting', 'To **bisect** a line segment, draw arcs of the same radius from each end; join the two crossing points. This line is the **perpendicular bisector**. You can bisect an angle in a similar way.', 'Bisect means cut into…|two equal parts|three parts|a right angle'],
+  ['Special angles', 'An equilateral triangle gives a **60°** angle. Bisect it to get **30°**. Bisecting a straight angle (180°) gives **90°**, and bisecting that gives **45°**.', 'Bisecting a 60° angle gives…|30°|120°|45°']],
+  ['Bisecting a 90° angle gives…|45°|30°|180°', 'The perpendicular bisector cuts a line at…|90° and in half|45°|one end', 'Each angle of an equilateral triangle is…|60°|90°|45°', 'To copy a length you use a…|compass|protractor|set square', 'Bisecting a 180° angle gives…|90°|60°|45°'],
+  'Practise on scrap paper first. Keep the compass width the same until the step is finished.',
+  'Changing the compass width between the two arcs, so they do not meet in the right place.');
+LC('p3_g9_similar', 'maths', 8, 'Geometry', 'Similar triangles and Pythagoras in use', '📐', [
+  ['Proportional sides', 'In similar triangles, matching sides are in the same ratio. If ΔABC ||| ΔDEF, then AB/DE = BC/EF = AC/DF.', 'Similar triangles: sides 4 and 6 match sides 6 and…|9|8|12'],
+  ['Pythagoras', 'In a right-angled triangle, **hypotenuse² = side² + side²**. The hypotenuse is opposite the right angle and is the longest side.', 'The two shorter sides are 6 and 8. The hypotenuse is…|10|14|100', ['A 13 m ladder leans against a wall with its foot 5 m from the wall. How high up the wall does it reach?', ['13² = 5² + h².', '169 − 25 = 144, so h² = 144.'], 'h = 12 m']],
+  ['Is it right-angled?', 'Use Pythagoras backwards: if a² + b² = c² for the longest side c, the triangle has a right angle. 7, 24, 25: 49 + 576 = 625 ✓.', 'Is a triangle with sides 3, 4, 5 right-angled?|Yes|No|Only if it is isosceles']],
+  ['Shorter sides 5 and 12. The hypotenuse is…|13|17|60', 'Hypotenuse 10, one side 6. The other side is…|8|4|16', 'The longest side of a right-angled triangle is the…|hypotenuse|base|height', 'Is a triangle with sides 2, 3, 4 right-angled?|No|Yes|Sometimes', 'A tree casts a 4 m shadow; a 1 m stick casts a 2 m shadow. The tree is…|2|8|4'],
+  'Draw squares on each side of a 3-4-5 triangle on grid paper: 9 + 16 small squares fill the 25-square on the hypotenuse.',
+  'Adding the sides instead of their squares, or using Pythagoras on a triangle without a right angle.');
+LC('p3_g9_data', 'maths', 8, 'Data Handling', 'Data: quartiles, spread and graphs', '📊', [
+  ['Summarising data', 'The five-number summary is: minimum, lower quartile (Q1), median, upper quartile (Q3), maximum. The **interquartile range** = Q3 − Q1.', 'The median splits ordered data into…|two halves|four quarters|three parts'],
+  ['Spread', 'The range and interquartile range show how spread out data is. A small spread means the values are close together.', 'Q1 = 12 and Q3 = 20. The interquartile range is…|8|32|16', ['Find the median and range of 4, 9, 2, 7, 11, 6.', ['Order: 2, 4, 6, 7, 9, 11.', 'Median: the middle two are 6 and 7, so (6 + 7) ÷ 2 = 6,5.', 'Range: 11 − 2 = 9.'], 'median 6,5; range 9']],
+  ['Choosing graphs', 'Histograms show grouped data, scatter plots show whether two things are related, and broken-line graphs show trends.', 'To see if height and mass are related, use a…|scatter plot|pie chart|tally table']],
+  ['Find the median of 3, 8, 5, 10.|6,5|5|8', 'Data 1, 3, 3, 4, 9. The mean is…|4|3|9', 'Q3 − Q1 is called the…|interquartile range|range|mean', 'Grouped data in intervals is shown in a…|histogram|pie chart|stem graph', 'A value far from the rest is an…|outlier|quartile|median'],
+  'Line the data up in order, fold the list in half for the median, then fold each half again for the quartiles.',
+  'Forgetting to put the data in order before finding the median or quartiles.');
+
 const bankGen = (bank, icon, lang) => () => { const it = pick(bank).split('|'), [q, ans, ...wr] = it; const isEmoji = !/[a-z0-9]/i.test(ans);
   if (wr.length && Math.random() < 0.3) { const truth = Math.random() < .5, cand = truth ? ans : pick(wr);
     return { prompt: 'True or false?', say: q, vis: `<div style="text-align:center"><div style="font-size:30px">${icon}</div><p class="story" style="margin:6px 0">${esc(q)}</p><div class="word" style="font-size:${isEmoji ? 56 : 26}px;line-height:1.2">${esc(cand)}</div></div>`, options: [{ html: '✅ True', val: 'true' }, { html: '❌ False', val: 'false' }], answer: String(truth), text: true, four: false, form: 'tf:' + q + '|' + cand }; }
@@ -3416,7 +3630,7 @@ function teachPagesView(a, head, next, skip, N) {
   ctx.chk = ctx.chk || {}; ctx.exs2 = ctx.exs2 || {};
   const c = pg.c ? pg.c.split('|') : null; if (c && !ctx.chk[i]) ctx.chk[i] = { order: shuffle(c.slice(1)), wrong: [], done: false };
   const st = ctx.chk[i], v = typeof pg.v === 'function' ? pg.v() : (pg.v || '');
-  const spk = a.id + ':' + i; if (ctx._sp !== spk) { ctx._sp = spk; setTimeout(() => { if (screen === 'teach' && ctx._sp === spk) voxSay([[pg.t, 'en']].concat(c ? [[c[0], 'en']] : [])); }, 350); }
+  const spk = a.id + ':' + i; if (ctx._sp !== spk) { ctx._sp = spk; setTimeout(() => { if (screen === 'teach' && ctx._sp === spk) { const L = SUBJ_LANG[a.s]; voxSay(L ? voxMix(pg.t, L).concat(c ? voxMix(c[0], L) : []) : [[pg.t, 'en']].concat(c ? [[c[0], 'en']] : [])); } }, 350); }
   const dots = `<div class="dots">${pages.map((_, j) => `<i class="${j < i ? 'done' : j === i ? 'on' : ''}"></i>`).join('')}</div>`;
   const ex = pg.ex ? `<div class="card" style="border-left:6px solid var(--sea)"><h3 style="margin-top:0">✏️ Worked example</h3><p class="story" style="margin:0">${mdT(pg.ex.q)}</p>${ctx.exs2[i] ? `<ol style="margin:8px 0 0;padding-left:22px">${pg.ex.s.map(x => `<li style="margin:4px 0">${mdT(x)}</li>`).join('')}</ol><p style="margin:6px 0 0"><b>Answer: ${mdT(pg.ex.a)}</b></p>` : `<div style="margin-top:8px">${BTN('tp-ex', 'Show me the steps')}</div>`}</div>` : '';
   const chk = c ? `<div class="card"><h3 style="margin-top:0">🤔 Check you understood</h3><p class="story" style="margin:0 0 8px">${mdT(c[0])}</p><div class="opts text">${st.order.map((o, j) => `<button class="opt ${st.done && o === c[1] ? 'ok' : ''} ${st.wrong.includes(o) ? 'no' : ''}" data-act="tp-chk" data-v="${esc(o)}" ${st.done || st.wrong.includes(o) ? 'disabled' : ''}>${esc(o)}</button>`).join('')}</div>${st.wrong.length && !st.done ? `<div class="banner">💡 ${mdT(pg.h2 || 'Not quite. Read the explanation above again, then try another answer.')}</div>` : ''}${st.done ? `<p class="story" style="margin:8px 0 0">${st.wrong.length ? '👍 Now you know.' : '🌟 Correct!'} ${pg.ce ? mdT(pg.ce) : ''}</p>` : ''}</div>` : '';
@@ -4054,7 +4268,7 @@ function startQuiz(act, mode = 'practice', qs = null) {
   go('quiz');
   setTimeout(() => { if (run && !(run.qs[0].story && !run.storyHeard)) speakQ(); }, 350);
 }
-function speakQ() { const q = run && run.qs[run.i]; if (q) say(q.say); }
+function speakQ() { const q = run && run.qs[run.i]; if (q) say(qSay(q, run.rtAct || run.act)); }
 function viewQuiz() {
   const q = run.qs[run.i], title = run.mode === 'assess' ? '📝 ' + run.act.t : run.act.ic + ' ' + run.act.t;
   const story = q.story && !run.storyHeard ? STORIES[q.story] : null;
@@ -4962,8 +5176,8 @@ app.addEventListener('click', e => {
     case 'learn-say': return say(sentencesOf(learnText(ctx.act)).slice(0, ctx.k || 1).join(' '));
     case 'learn-more': { ctx.k = (ctx.k || 1) + 1; render(); const ss = sentencesOf(learnText(ctx.act)); return say(ss[ctx.k - 1] || ''); }
     case 'learn-next': ctx.step = 1; render(); window.scrollTo(0, 0); return say('Watch me do one. ' + String(ctx.ex.prompt).replace(/<[^>]+>/g, ''));
-    case 'learn-try': ctx.step = 2; ctx.tq = G[ctx.act.id](1); ctx.twrong = []; ctx.tfirst = true; render(); window.scrollTo(0, 0); return say(ctx.tq.say);
-    case 'try-say': return say(ctx.tq.say);
+    case 'learn-try': ctx.step = 2; ctx.tq = G[ctx.act.id](1); ctx.twrong = []; ctx.tfirst = true; render(); window.scrollTo(0, 0); return say(qSay(ctx.tq, ctx.act));
+    case 'try-say': return say(qSay(ctx.tq, ctx.act));
     case 'try-ans': { const i = +b.dataset.i, q = ctx.tq; if (String(q.options[i].val) === String(q.answer)) { ctx.tdone = true; ding(); render(); return say(ctx.tfirst ? 'Brilliant! You got it.' : 'Good thinking! Now you know how.'); }
       buzz(); ctx.tfirst = false; ctx.twrong.push(i); ctx.thint = true; if (ctx.twrong.length >= 2) ctx.tdone = true; render(); return say(ctx.tdone ? 'Here is the answer. Look carefully.' : 'Not quite. Here is a hint. ' + sentencesOf(learnText(ctx.act))[0]); }
     case 'learn-show': ctx.shown = true; render(); return say('The answer is ' + ctx.ex.answer + '. Now it is your turn!');
@@ -5007,7 +5221,7 @@ app.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 
 /* ---------- v18: second-language elective wiring (lessons, notes, writing tasks) ---------- */
 const L2_OPTS = [['afr', 'Afrikaans', '🗣️'], ['spa', 'Spanish', '💃'], ['fre', 'French', '🥐'], ['man', 'Mandarin Chinese', '🐼'], ['por', 'Portuguese', '🌊']];
 const lang2Of = p => p.lang2 || ((p.cur || 'caps') === 'caps' ? 'afr' : 'spa');
-EXT.hear = b => { try { const t = b.dataset.t, l = b.dataset.l, u = new SpeechSynthesisUtterance(t), v = voiceFor(l); if (v) { u.voice = v; u.lang = v.lang; } else u.lang = { fr: 'fr-FR', zh: 'zh-CN', pt: 'pt-PT', es: 'es-ES', af: 'af-ZA' }[l] || 'en-ZA'; u.rate = 0.75; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) { toast('Sound is not available on this device'); } };
+EXT.hear = b => { hush(); voxOne(b.dataset.t, b.dataset.l || 'en', () => {}); };
 const hearBtn = (f, l) => { const t = f.replace(/\s*\(.*\)\s*$/, '').replace(/…/g, ''); return `<button class="btn alt" style="padding:4px 10px;min-height:0;margin:0;width:auto" data-act="hear" data-t="${esc(t)}" data-l="${l}" aria-label="Hear it">🔊</button>`; };
 const L2_ALT = { fre: 'Say each word out loud three times, then cover the English and test yourself. Many French words look like English words (table, orange, cinéma), so look for clues. Remember that the last letter is often silent: in "Paris" you do not hear the s.', man: 'Say each word slowly with its tone: tone 1 is high and flat (ā), tone 2 rises like a question (á), tone 3 dips down and up (ǎ), tone 4 falls sharply like a command (à). Draw the tone shape in the air with your hand as you say it, and look at the picture inside the character if you can see one.', por: 'Say each word out loud three times, then cover the English and test yourself. Portuguese is close to Spanish, and many words look like English (hospital, cinema, banana). Watch the little marks: ã and õ are said through the nose.' };
 for (const [id, { sid, tp, lang }] of Object.entries(L2_TOPIC)) {
@@ -5185,6 +5399,44 @@ NOTES_CACHE && Object.keys(NOTES_CACHE).forEach(k => delete NOTES_CACHE[k]);
 /* ---------- v21: read-aloud voice (recorded Emily voice where available, device voice otherwise) ---------- */
 const vhash = t => { let h = 2166136261; t = String(t).trim(); for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return ('0000000' + h.toString(16)).slice(-8); };
 let VOX = {}, voxCtx = null, voxSrc = null, voxSeq = 0;
+/* v24: language lessons are read by a native voice for that language (af, es, fr, zh, pt) */
+const voxLT = t => String(t || '').replace(/<[^>]+>/g, '').replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/\s*\([^)]*\)/g, '').replace(/…|_{2,}|▢/g, ' ').replace(/\s+\/\s+/g, ', ').replace(/\s+/g, ' ').trim();
+const SUBJ_LANG = { afr: 'af', spa: 'es', fre: 'fr', man: 'zh', por: 'pt' };
+const LANG_NAME_RE = /\bin (Afrikaans|Spanish|French|Mandarin|Chinese|Portuguese)( is| are)?\s*(…|\.\.\.|\?|:)?\s*$|how do you say|how would you say|which word means|what is the (Afrikaans|Spanish|French|Mandarin|Portuguese) word/i;
+const EN_SET = new Set('the a an and or of to is in it its this that these those what which who whom whose when where why how do does did you your yours he she they them their we our us me i my mine his her hers be are was were been being have has had will would should could can may might must not no yes there here with without for from by on at as about into after before than then so if but because says said say means mean word words answer true false correct sentence noun verb adjective plural singular past present future tense question name called use used one two three four five six seven eight nine ten good morning afternoon evening night hello goodbye bye please thank thanks sorry welcome well fine very happy sad tired hungry big small like likes shape shaped colour color go goes come comes get make made put take look see find give tell show usually most many some all each every more less other same different first last next new'.split(' '));
+let LEX = null;
+const lexWords = t => String(t).toLowerCase().replace(/\([^)]*\)/g, ' ').match(/[a-zÀ-ɏ']+|[一-鿿]/g) || [];
+const lexBuild = () => { LEX = {}; const F = l => (LEX[l] = LEX[l] || { f: new Set(), e: new Set() });
+  const addF = (l, t) => lexWords(t).forEach(w => F(l).f.add(w)), addE = (l, t) => lexWords(t).forEach(w => F(l).e.add(w));
+  for (const tp of Object.values(L2_TOPIC)) for (const [f, e] of tp.tp[5] || []) { addF(tp.lang, f); addE(tp.lang, e); }
+  for (const m of MORE) { const l = SUBJ_LANG[m[1]]; if (!l || !Array.isArray(m[7])) continue;
+    for (const it of m[7]) { if (typeof it !== 'string') continue; const [q, ans, ...wr] = it.split('|'); if (!ans) continue;
+      const qq = (q.match(/["“]([^"”]+)["”]/) || [])[1];
+      if (LANG_NAME_RE.test(q)) { [ans, ...wr].forEach(x => addF(l, x)); if (qq) addE(l, qq); }
+      else if (/\bmeans?…?\s*$|means…/i.test(q) && qq) { addF(l, qq); [ans, ...wr].forEach(x => addE(l, x)); } } }
+  if (typeof AF !== 'undefined') for (const k in AF) for (const [w, , e] of AF[k]) { addF('af', w); addE('af', e); }
+  for (const L of Object.values(LEX)) for (const w of EN_SET) L.e.add(w); };
+const isEn = (t, l) => { if (!LEX) lexBuild(); const w = lexWords(t); if (!w.length) return true; if (/[一-鿿]/.test(t)) return false;
+  const L = LEX[l] || { f: new Set(), e: EN_SET }; let en = 0, fx = 0;
+  for (const x of w) { const inF = L.f.has(x), inE = L.e.has(x) || EN_SET.has(x); if (inF && !inE) fx++; else if (inE && !inF) en++; else if (/[^\x00-\x7f]/.test(x)) fx++; else if (!inF && !inE) en += 0.5; }
+  return en >= fx; };
+const EN_SKIP = { af: /^(is|in|my|was|so|hand|arm|net|kind|by|op|van|en|of|die|wat|hy|sy|ons)$/, es: /^(a|no|me|mi|tu|se|son|pan|con|come|sea|red|once|dime|fin|era|ten|mira|tienes|sin|ve)$/, pt: /^(a|no|me|se|do|da|com|pais|mar|sala)$/, fr: /^(a|on|son|an|me|se|tu|pour|fin|plus|bout|six|sept|ours)$/, zh: /^$/ };
+const hasEnFn = (t, l) => (String(t).toLowerCase().match(/[a-z']+/g) || []).some(x => EN_SET.has(x) && !((EN_SKIP[l] || /^$/).test(x)));
+const isEnStrict = (t, l) => { if (hasEnFn(t, l)) return true; if (!LEX) lexBuild(); const L = LEX[l]; const w = lexWords(t); if (!w.length || /[\u4e00-\u9fff]/.test(t)) return !w.length; return !!L && w.every(x => L.e.has(x) && !L.f.has(x)); };
+const voxMix = (t, l) => { t = String(t || ''); const out = [], re = /["“]([^"”]+)["”]/g; let i = 0, m, any = false;
+  if (LANG_NAME_RE.test(t)) return [[t, 'en']];
+  while ((m = re.exec(t))) { any = true; if (m.index > i) { const x = t.slice(i, m.index); out.push([x, !/[a-z]/i.test(x) || isEnStrict(x, l) ? 'en' : l]); } out.push([m[1], /^\s*means?\b|^\s*beteken/i.test(t.slice(re.lastIndex)) || !isEnStrict(m[1], l) ? l : 'en']); i = re.lastIndex; }
+  if (l === 'zh') { const z = []; String(t).replace(/\s*\([^)]*\)/g, '').split(/([\u4e00-\u9fff，。！？、…]+)/).forEach(x => { if (!/\S/.test(x)) return; z.push([x, /[\u4e00-\u9fff]/.test(x) ? 'zh' : 'en']); }); if (!any && z.length) return z; }
+  if (!any) { const pm = t.match(/^\s*(Choose|Complete|Fill in|Kies|Voltooi)\s*:\s*/i); if (pm && t.length > pm[0].length) return [[pm[0], 'en'], [t.slice(pm[0].length), l]]; return [[t, isEnStrict(t, l) ? 'en' : l]]; }
+  if (i < t.length && /[a-z0-9]/i.test(t.slice(i))) out.push([t.slice(i), 'en']);
+  return out.filter(p => /\S/.test(p[0])); };
+const qSay = (q, a) => { const l = a && SUBJ_LANG[a.s]; if (l && q && q.form === 'rev' && q.options) return [[String(q.say || ''), 'en']].concat(q.options.map(o => [voxLT(o.html), l])); if (!l || !q || !/^(mc|tf):/.test(q.form || '')) return q && q.say;
+  const f = String(q.form), tf = f.startsWith('tf:'), body = f.slice(3), qt = tf ? body.slice(0, body.lastIndexOf('|')) : body;
+  const parts = voxMix(qt, l), allForeign = parts.every(p => p[1] === l);
+  const optL = t => LANG_NAME_RE.test(qt) ? (/^[\d\s.,:\-+]+$/.test(t) ? 'en' : l) : (allForeign || /\bmeans?\b|in English/i.test(qt)) ? 'en' : (isEn(t, l) ? 'en' : l);
+  if (tf) { const c = body.slice(body.lastIndexOf('|') + 1); parts.push([c, optL(c)]); return parts; }
+  if (q.text !== false && q.options) q.options.forEach(o => { const t = voxLT(o.html); if (t && /[a-z0-9À-ɏ一-鿿]/i.test(t)) parts.push([t, optL(t)]); });
+  return parts; };
 const voxBufs = {};
 try { fetch('voice/index.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : {}).then(j => { VOX = j || {}; }).catch(() => {}); } catch (e) { }
 const voxOn = () => S.voice !== false;
@@ -5206,8 +5458,9 @@ function voxTTS(text, lang, done) {
     u.rate = lang === 'en' ? 0.95 : 0.8; u.onend = end; u.onerror = end; speechSynthesis.speak(u); setTimeout(end, 1500 + text.length * 120); } catch (e) { end(); }
 }
 function voxOne(text, lang, done) {
-  const h = vhash(text);
-  if (lang !== 'en' || !VOX[h]) return voxTTS(text, lang, done);
+  if (lang !== 'en') { text = voxLT(text); if (!text) return done(); }
+  const h = lang === 'en' ? vhash(text) : vhash(lang + ':' + text);
+  if (!VOX[h]) return voxTTS(text, lang, done);
   const my = voxSeq;
   voxLoad(h, buf => { if (my !== voxSeq) return; const c = voxCtxGet(); if (!buf || !c) return voxTTS(text, lang, done);
     try { const s = c.createBufferSource(); s.buffer = buf; s.connect(c.destination); s.onended = () => { if (voxSrc === s) voxSrc = null; done(); }; s.start(0); voxSrc = s; } catch (e) { voxTTS(text, lang, done); } });
@@ -5218,7 +5471,7 @@ function voxSay(parts, done) {
   if (!voxOn() || !parts) return done();
   if (typeof parts === 'string') parts = [[parts, 'en']];
   const q = []; for (const [t, l] of parts) { if (!t) continue; if ((l || 'en') === 'en') voxSplit(t).forEach(s => q.push([s, 'en'])); else q.push([String(t), l]); }
-  voxPrefetch(q.filter(x => x[1] === 'en').map(x => x[0]));
+  for (const [t, l] of q) { const h = l === 'en' ? vhash(t) : vhash(l + ':' + voxLT(t)); if (VOX[h] && !voxBufs[h]) voxLoad(h, () => {}); }
   const next = i => { if (my !== voxSeq) return; if (i >= q.length) return done(); voxOne(q[i][0], q[i][1], () => { if (my === voxSeq) setTimeout(() => next(i + 1), 220); }); };
   next(0);
 }
@@ -7033,6 +7286,14 @@ WA('s6_code_if', [
 WA('s6_code_if', [
   ['Why do programs need IF statements?', 'IF statements let programs make decisions and react differently depending on what happens, for example whether an answer is correct.', 'decision/choose/decide~Make decisions', 'react/different/depend/condition/correct~React to different situations']]);
 
+/* v24: every phrase a language lesson says in its own language (used to build the recording list) */
+const voxLangLines = filter => { const set = {}, add = (t, l) => { t = voxLT(t); if (t && l !== 'en') set[vhash(l + ':' + t)] = l + ':' + t; };
+  for (const a of ACTS) { const l = SUBJ_LANG[a.s]; if (!l || !filter(a)) continue;
+    for (let i = 0; i < 300; i++) { let q; try { q = G[a.id](i); } catch (e) { continue; } const p = qSay(q, a); if (Array.isArray(p)) p.forEach(([t, ll]) => add(t, ll)); }
+    const T = TEACH[a.id]; if (T && T.pages) for (const pg of T.pages) {
+      voxMix(pg.t, l).forEach(([t, ll]) => add(t, ll)); if (pg.c) voxMix(pg.c.split('|')[0], l).forEach(([t, ll]) => add(t, ll));
+      String(pg.v || '').replace(/data-t="([^"]*)" data-l="([a-z]+)"/g, (m, t, ll) => { add(t.replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&'), ll); return m; }); } }
+  return set; };
 if (S.active && P()) screen = 'home';
 render();
 })();

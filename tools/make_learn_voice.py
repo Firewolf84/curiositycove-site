@@ -6,7 +6,9 @@ sentence that doesn't have a recording yet, then writes learn/voice/index.json (
 app checks before playing a recording; anything missing is read by the device's own voice).
 Old recordings no longer used are removed.
 
-Voice: en-IE-EmilyNeural (the same Irish English voice as BOLT's Little Lab).
+Voice: en-IE-EmilyNeural (the same Irish English voice as BOLT's Little Lab). Language-lesson lines
+("af:…", "es:…", "fr:…", "zh:…", "pt:…") use a native voice: Adri (Afrikaans), Elvira (Spanish),
+Denise (French), Xiaoxiao (Mandarin) and Raquel (Portuguese).
   * If the AZURE_SPEECH_KEY secret is set (with AZURE_SPEECH_REGION), it uses your Azure Speech account.
   * Otherwise it uses the free edge-tts package (the Microsoft Edge read-aloud service).
 Recordings are squeezed to 32 kbps mono with ffmpeg (when available) to keep the site small.
@@ -20,6 +22,18 @@ import asyncio, json, os, shutil, subprocess, sys, tempfile, time, urllib.reques
 from xml.sax.saxutils import escape
 
 VOICE = "en-IE-EmilyNeural"
+# Language lessons: lines written "af:Goeie môre" are read by a native speaker's voice for that language.
+LANG_VOICES = {"af": ("af-ZA-AdriNeural", "af-ZA"), "es": ("es-ES-ElviraNeural", "es-ES"), "fr": ("fr-FR-DeniseNeural", "fr-FR"),
+               "zh": ("zh-CN-XiaoxiaoNeural", "zh-CN"), "pt": ("pt-PT-RaquelNeural", "pt-PT")}
+LANG_RATE = "-12%"   # a little slower, so learners can hear every sound
+
+
+def voice_for(text):
+    """Returns (text to say, voice, xml:lang, rate) for a line from lines.json."""
+    if len(text) > 3 and text[2] == ":" and text[:2] in LANG_VOICES:
+        v, lang = LANG_VOICES[text[:2]]
+        return text[3:], v, lang, LANG_RATE
+    return text, VOICE, "en-IE", RATE
 RATE = "-3%"
 PITCH = "+0Hz"
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "learn", "voice")
@@ -29,8 +43,9 @@ FFMPEG = shutil.which("ffmpeg")
 
 
 def azure(text, path, key, region):
-    ssml = (f'<speak version="1.0" xml:lang="en-IE"><voice name="{VOICE}">'
-            f'<prosody rate="{RATE}" pitch="{PITCH}">{escape(text)}</prosody></voice></speak>')
+    text, voice, lang, rate = voice_for(text)
+    ssml = (f'<speak version="1.0" xml:lang="{lang}"><voice name="{voice}">'
+            f'<prosody rate="{rate}" pitch="{PITCH}">{escape(text)}</prosody></voice></speak>')
     req = urllib.request.Request(
         f"https://{region}.tts.speech.microsoft.com/cognitiveservices/v1", data=ssml.encode(),
         headers={"Ocp-Apim-Subscription-Key": key, "Content-Type": "application/ssml+xml",
@@ -56,7 +71,8 @@ async def record(text, path, key, region):
                     await asyncio.to_thread(azure, text, tmp, key, region)
                 else:
                     import edge_tts
-                    await edge_tts.Communicate(text, VOICE, rate=RATE, pitch=PITCH).save(tmp)
+                    say, voice, _, rate = voice_for(text)
+                    await edge_tts.Communicate(say, voice, rate=rate, pitch=PITCH).save(tmp)
                 if os.path.getsize(tmp) < 1000:
                     raise RuntimeError("empty recording")
                 break
@@ -75,6 +91,7 @@ async def main():
     key, region = os.environ.get("AZURE_SPEECH_KEY"), os.environ.get("AZURE_SPEECH_REGION", "northeurope")
     todo = [(h, t) for h, t in lines.items()
             if not (os.path.exists(os.path.join(ROOT, h + ".mp3")) and os.path.getsize(os.path.join(ROOT, h + ".mp3")) > 500)]
+    todo.sort(key=lambda x: voice_for(x[1])[1] == VOICE)  # language-lesson lines first
     start, stats, sem = time.time(), {"made": 0, "failed": 0, "skipped": 0}, asyncio.Semaphore(WORKERS)
 
     async def one(h, text):
