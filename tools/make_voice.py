@@ -72,33 +72,49 @@ async def edge(text, path):
     await edge_tts.Communicate(text, VOICE, rate=RATE, pitch=PITCH).save(path)
 
 
+BUDGET = 25 * 60   # stop recording after this many seconds; the next run carries on
+WORKERS = 4
+T0 = time.time()
+
+
+async def record_one(text, path, key, region):
+    for attempt in range(3):  # the service sometimes drops a request; try again
+        try:
+            if key: await asyncio.wait_for(asyncio.to_thread(azure, text, path, key, region), 70)
+            else: await asyncio.wait_for(edge(text, path), 45)
+            if os.path.getsize(path) < 1000: raise RuntimeError("empty recording")
+            return True
+        except Exception as e:
+            err = e
+            if os.path.exists(path): os.remove(path)
+            await asyncio.sleep(3 * (attempt + 1))
+    print("could not record:", text[:60], "-", repr(err)[:120], file=sys.stderr)
+    return False
+
+
+async def record_all(todo, key, region):
+    sem = asyncio.Semaphore(WORKERS); res = {"made": 0, "failed": 0, "skipped": 0}
+    async def job(text, path):
+        async with sem:
+            if time.time() - T0 > BUDGET: res["skipped"] += 1; return
+            ok = await record_one(text, path, key, region)
+            res["made" if ok else "failed"] += 1
+    await asyncio.gather(*(job(t, p) for t, p in todo))
+    return res
+
+
 def record(ROOT, lines):
     key, region = os.environ.get("AZURE_SPEECH_KEY"), os.environ.get("AZURE_SPEECH_REGION", "northeurope")
-    made = failed = 0
-    for h, text in lines.items():
-        path = os.path.join(ROOT, h + ".mp3")
-        if os.path.exists(path) and os.path.getsize(path) > 1000:
-            continue
-        try:
-            for attempt in range(3):  # the service sometimes drops a request; try again
-                try:
-                    if key: azure(text, path, key, region)
-                    else: asyncio.run(edge(text, path))
-                    if os.path.getsize(path) < 1000: raise RuntimeError("empty recording")
-                    break
-                except Exception:
-                    if attempt == 2: raise
-                    time.sleep(3)
-            made += 1
-        except Exception as e:
-            failed += 1
-            print("could not record:", text, "-", e, file=sys.stderr)
-            if os.path.exists(path): os.remove(path)
+    os.makedirs(ROOT, exist_ok=True)
+    todo = [(t, os.path.join(ROOT, h + ".mp3")) for h, t in lines.items()
+            if not (os.path.exists(os.path.join(ROOT, h + ".mp3")) and os.path.getsize(os.path.join(ROOT, h + ".mp3")) > 1000)]
+    res = asyncio.run(record_all(todo, key, region)) if todo else {"made": 0, "failed": 0, "skipped": 0}
     for f in os.listdir(ROOT):  # tidy recordings that are no longer used
         if f.endswith(".mp3") and f[:-4] not in lines: os.remove(os.path.join(ROOT, f))
     have = {h: 1 for h in lines if os.path.exists(os.path.join(ROOT, h + ".mp3"))}
     json.dump(have, open(os.path.join(ROOT, "index.json"), "w"), separators=(",", ":"))
-    print(f"{os.path.basename(os.path.dirname(ROOT))}: recorded {made} new, {failed} failed, {len(have)}/{len(lines)} lines have a voice")
+    print(f"{os.path.basename(os.path.dirname(ROOT))}: recorded {res['made']} new, {res['failed']} failed, "
+          f"{res['skipped']} left for next time, {len(have)}/{len(lines)} lines have a voice")
 
 
 def main():
