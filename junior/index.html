@@ -1709,15 +1709,24 @@ let zzfxV = 0.3, zzfxX = null, zzfx = (
       }, i * 130);
     });
   }
-  var voice = null;
+  var voice = null, VOX = {}, voxBufs = {}, voxSrc = null, voxReady = false, voxSeq = 0;
+  function vhash(t) {
+    var h = 2166136261;
+    t = String(t).trim();
+    for (var i = 0; i < t.length; i++) {
+      h ^= t.charCodeAt(i);
+      h = Math.imul(h, 16777619) >>> 0;
+    }
+    return ("0000000" + h.toString(16)).slice(-8);
+  }
   function pickVoice() {
     try {
-      var vs = speechSynthesis.getVoices();
-      voice = vs.filter(function(v) {
-        return /en[-_](GB|ZA|AU)/i.test(v.lang);
-      })[0] || vs.filter(function(v) {
-        return /^en/i.test(v.lang);
-      })[0] || null;
+      var vs = speechSynthesis.getVoices(), f = function(re, l) {
+        return vs.filter(function(v) {
+          return re.test(v.lang) && (!l || l.test(v.name));
+        })[0];
+      };
+      voice = f(/en[-_]IE/i) || f(/en[-_]GB/i, /female|moira|serena|kate|martha|libby|sonia|maisie|stephanie|susan|hazel/i) || f(/en[-_](GB|ZA|AU)/i) || f(/^en/i) || null;
     } catch (e) {
     }
   }
@@ -1728,17 +1737,127 @@ let zzfxV = 0.3, zzfxX = null, zzfx = (
     } catch (e) {
     }
   }
-  function speak(t) {
-    if (!J.sound || !window.speechSynthesis || !t) return;
+  function actx() {
     try {
+      if (!zzfxX) zzfxX = new (window.AudioContext || window.webkitAudioContext)();
+      if (zzfxX.state === "suspended") zzfxX.resume();
+      return zzfxX;
+    } catch (e) {
+      return null;
+    }
+  }
+  function unlockAudio() {
+    var c = actx();
+    if (!c) return;
+    try {
+      var b = c.createBuffer(1, 1, 22050), s = c.createBufferSource();
+      s.buffer = b;
+      s.connect(c.destination);
+      s.start(0);
+    } catch (e) {
+    }
+  }
+  document.addEventListener("touchend", unlockAudio, true);
+  document.addEventListener("click", unlockAudio, true);
+  try {
+    fetch("voice/index.json", { cache: "no-cache" }).then(function(r) {
+      return r.ok ? r.json() : {};
+    }).then(function(j) {
+      VOX = j || {};
+      voxReady = true;
+      SAYS.ok.concat(SAYS.bad).forEach(function(t) {
+        voxLoad(t);
+      });
+    }).catch(function() {
+      voxReady = true;
+    });
+  } catch (e) {
+    voxReady = true;
+  }
+  function voxLoad(t, cb) {
+    var h = vhash(t);
+    if (!VOX[h]) {
+      if (cb) cb(null);
+      return;
+    }
+    var b = voxBufs[h];
+    if (b && b.buf) {
+      if (cb) cb(b.buf);
+      return;
+    }
+    if (b) {
+      if (cb) b.cbs.push(cb);
+      return;
+    }
+    b = voxBufs[h] = { buf: null, cbs: cb ? [cb] : [] };
+    var c = actx(), done = function(x) {
+      b.buf = x;
+      if (!x) delete voxBufs[h];
+      var l = b.cbs;
+      b.cbs = [];
+      l.forEach(function(f) {
+        f(x);
+      });
+    };
+    if (!c) return done(null);
+    fetch("voice/" + h + ".mp3").then(function(r) {
+      if (!r.ok) throw 0;
+      return r.arrayBuffer();
+    }).then(function(a) {
+      c.decodeAudioData(a, function(x) {
+        done(x);
+      }, function() {
+        done(null);
+      });
+    }).catch(function() {
+      done(null);
+    });
+  }
+  function hush() {
+    voxSeq++;
+    try {
+      if (voxSrc) voxSrc.stop();
+    } catch (e) {
+    }
+    voxSrc = null;
+    if (window.speechSynthesis) try {
       speechSynthesis.cancel();
+    } catch (e) {
+    }
+  }
+  function ttsSpeak(t) {
+    if (!window.speechSynthesis) return;
+    try {
       var u = new SpeechSynthesisUtterance(t);
       u.rate = 0.92;
-      u.pitch = 1.15;
-      if (voice) u.voice = voice;
+      u.pitch = 1.1;
+      if (voice) {
+        u.voice = voice;
+        u.lang = voice.lang;
+      }
       speechSynthesis.speak(u);
     } catch (e) {
     }
+  }
+  function speak(t) {
+    if (!J.sound || !t) return;
+    hush();
+    var my = voxSeq;
+    if (!VOX[vhash(t)]) return ttsSpeak(t);
+    voxLoad(t, function(buf) {
+      if (my !== voxSeq || !J.sound) return;
+      var c = actx();
+      if (!buf || !c) return ttsSpeak(t);
+      try {
+        var s = c.createBufferSource();
+        s.buffer = buf;
+        s.connect(c.destination);
+        s.start(0);
+        voxSrc = s;
+      } catch (e) {
+        ttsSpeak(t);
+      }
+    });
   }
   function buzz(k) {
     if (!J.sound) return;
@@ -2227,7 +2346,7 @@ let zzfxV = 0.3, zzfxX = null, zzfx = (
       };
     }
   };
-  var PL = { "fish": "fish", "sheep": "sheep", "corn": "corn cobs", "octopus": "octopuses", "puzzle piece": "puzzle pieces", "dice": "dice", "T. rex": "T. rexes", "leaf": "leaves", "Earth": "planet Earths", "flying saucer": "flying saucers", "yo-yo": "yo-yos", "palm tree": "palm trees" };
+  var PL = { "volcano": "volcanoes", "fish": "fish", "sheep": "sheep", "corn": "corn cobs", "octopus": "octopuses", "puzzle piece": "puzzle pieces", "dice": "dice", "T. rex": "T. rexes", "leaf": "leaves", "Earth": "planet Earths", "flying saucer": "flying saucers", "yo-yo": "yo-yos", "palm tree": "palm trees" };
   function plural(w) {
     return PL[w] || w + "s";
   }
@@ -2284,10 +2403,7 @@ let zzfxV = 0.3, zzfxX = null, zzfx = (
     $("stars").textContent = "\u2B50 " + totalStars();
   }
   function go(v) {
-    if (window.speechSynthesis) try {
-      speechSynthesis.cancel();
-    } catch (e) {
-    }
+    hush();
     if (v === "map") map();
     else if (v === "book") book();
     window.scrollTo(0, 0);
@@ -2346,7 +2462,7 @@ let zzfxV = 0.3, zzfxX = null, zzfx = (
     };
   }
   function foot() {
-    return `<p class="foot">BOLT's Little Lab by Curiosity Cove \xB7 No ads, nothing collected, progress stays on this device \xB7 <a href="../play/">Older kids (9\u201312): Robot Lab Breakout</a> \xB7 <a href="../robot-lab-breakout/">Privacy and help</a><br>Sounds by ZzFX (MIT) \xB7 Confetti by canvas-confetti (ISC)</p>`;
+    return `<p class="foot">BOLT's Little Lab by Curiosity Cove \xB7 No ads, nothing collected, progress stays on this device \xB7 <a href="../play/">Older kids (9\u201312): Robot Lab Breakout</a> \xB7 <a href="../robot-lab-breakout/">Privacy and help</a><br>Voice: Emily (Microsoft Azure neural voice) \xB7 Sounds by ZzFX (MIT) \xB7 Confetti by canvas-confetti (ISC)</p>`;
   }
   var gateAns = 0;
   function grown() {
@@ -2391,6 +2507,9 @@ let zzfxV = 0.3, zzfxX = null, zzfx = (
   function startLevel(n) {
     var age = J.age, isl = ISLANDS[Math.floor(n / 10)], pz = buildLevel(age, n);
     cur = { n, age, pz, i: 0, miss: 0 };
+    pz.slice(0, 2).forEach(function(q) {
+      voxLoad(q.speech);
+    });
     setBand(isl.c);
     sfx("tap");
     showPuzzle();
@@ -2439,6 +2558,7 @@ let zzfxV = 0.3, zzfxX = null, zzfx = (
   }
   function next() {
     cur.i++;
+    if (cur.pz[cur.i + 1]) voxLoad(cur.pz[cur.i + 1].speech);
     if (cur.i < cur.pz.length) showPuzzle();
     else reward();
   }
@@ -2498,10 +2618,7 @@ let zzfxV = 0.3, zzfxX = null, zzfx = (
       J.sound = !J.sound;
       save();
       updSnd();
-      if (!J.sound && window.speechSynthesis) try {
-        speechSynthesis.cancel();
-      } catch (e) {
-      }
+      if (!J.sound) hush();
     }
   };
   view.addEventListener("click", function(ev) {
@@ -2515,7 +2632,22 @@ let zzfxV = 0.3, zzfxX = null, zzfx = (
     $("snd").textContent = J.sound ? "\u{1F50A}" : "\u{1F507}";
     $("snd").setAttribute("aria-label", J.sound ? "Sound on" : "Sound off");
   }
-  if (location.hash === "#selftest") window.__LL = { buildLevel };
+  if (location.hash === "#selftest") window.__LL = { buildLevel, vhash, lines: function() {
+    var L = {}, add = function(t) {
+      if (t) L[vhash(t)] = String(t).trim();
+    };
+    ["s", "e"].forEach(function(a) {
+      for (var n = 0; n < 50; n++) buildLevel(a, n).forEach(function(p) {
+        add(p.speech);
+      });
+    });
+    SAYS.ok.concat(SAYS.bad).forEach(add);
+    ["Hello! Let's play!", "Hello explorer! Let's go!", "Hooray! Tap the present!", "Three stars! Amazing!", "Two stars! Great work!", "One star! Well done!", "Not there yet! Change your plan.", "Bonk! A rock is in the way.", "Whoops! That's the edge."].forEach(add);
+    ISLANDS.forEach(function(i) {
+      add("You finished " + i.name + "! Tap the present!");
+    });
+    return L;
+  } };
   updSnd();
   stars();
   map();
