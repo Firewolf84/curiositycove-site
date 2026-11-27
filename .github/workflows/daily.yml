@@ -19,6 +19,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # 1) Publish the website straight away (new daily challenge included).
   publish:
     runs-on: ubuntu-latest
     environment:
@@ -31,6 +32,33 @@ jobs:
           python-version: "3.12"
       - name: Make today's daily challenge (every lock is re-solved and checked)
         run: python3 tools/make_daily.py daily.json
+      - name: Save it in the repository
+        run: |
+          git config user.name "Curiosity Cove robot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add daily.json
+          git diff --cached --quiet || (git commit -m "Daily challenge $(TZ=Africa/Johannesburg date +%F)" && git push)
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  # 2) Then record any new voice lines (can take a while) and publish again.
+  voice:
+    needs: publish
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - name: Record BOLT's Irish voice for the Little Lab and Robot Lab Breakout (only new lines, up to 25 minutes per run)
         continue-on-error: true
         timeout-minutes: 35
@@ -50,15 +78,23 @@ jobs:
         run: |
           pip install -q edge-tts
           python3 tools/make_learn_voice.py
-      - name: Save it in the repository
+      - name: Save the recordings in the repository
+        id: save
         run: |
           git config user.name "Curiosity Cove robot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add daily.json junior/voice play/voice learn/voice
-          git diff --cached --quiet || (git commit -m "Daily challenge and voice $(TZ=Africa/Johannesburg date +%F)" && git push)
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+          git pull -q --rebase || true
+          git add junior/voice play/voice learn/voice
+          if git diff --cached --quiet; then echo "changed=no" >> "$GITHUB_OUTPUT"; else git commit -m "Voice recordings $(TZ=Africa/Johannesburg date +%F)" && git push && echo "changed=yes" >> "$GITHUB_OUTPUT"; fi
+      - if: steps.save.outputs.changed == 'yes'
+        uses: actions/configure-pages@v5
+      - if: steps.save.outputs.changed == 'yes'
+        uses: actions/upload-pages-artifact@v3
         with:
           path: .
+          name: github-pages-voice
       - id: deployment
+        if: steps.save.outputs.changed == 'yes'
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-voice
