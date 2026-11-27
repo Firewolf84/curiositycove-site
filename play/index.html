@@ -253,6 +253,25 @@ h1 {
   max-width: 60ch;
   margin: 0 0 18px;
 }
+.readme {
+  min-height: 40px;
+  min-width: 44px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 20px;
+  line-height: 1;
+  margin-left: auto;
+  flex: none;
+}
+.story .readme {
+  margin-left: 4px;
+  vertical-align: middle;
+}
+.lhead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 .clock {
   display: flex;
   flex-wrap: wrap;
@@ -1894,13 +1913,14 @@ button.go:not([disabled]) {
       <div>
         <p class="tag" id="tag">Level 1</p>
         <h1 id="title">Robot Lab Breakout</h1>
-        <p class="story" id="story"></p>
+        <p class="story"><span id="story"></span> <button type="button" class="readme" id="storyRead" aria-label="Read the story to me">🔊</button></p>
         <div class="clock">
           <div><div class="time" id="time">45:00</div><small id="clockNote">Ready when you are</small></div>
           <button class="go" id="startBtn" type="button">Start the mission</button>
           <button id="pauseBtn" type="button" hidden>Pause</button>
           <button id="replayBtn" type="button" hidden>Play again</button>
           <button class="quiet" id="soundBtn" type="button" aria-pressed="true">Sound on</button>
+          <button class="quiet" id="voiceBtn" type="button" aria-pressed="true">Voice on</button>
         </div>
         <div class="tray" id="tray" aria-label="Letters collected"></div>
       </div>
@@ -2796,9 +2816,113 @@ var _a, _b, _c, _d, _e, _f, _g, _h;
     }
   }, beep2 = function(ok) {
     sfx2(ok ? "ok" : "bad");
-  }, say2 = function(t) {
+  }, vhash2 = function(t) {
+    let h = 2166136261;
+    t = String(t).trim();
+    for (let i = 0; i < t.length; i++) {
+      h ^= t.charCodeAt(i);
+      h = Math.imul(h, 16777619) >>> 0;
+    }
+    return ("0000000" + h.toString(16)).slice(-8);
+  }, pickTts2 = function() {
+    try {
+      const vs = speechSynthesis.getVoices(), f = (re, n) => vs.filter((v) => re.test(v.lang) && (!n || n.test(v.name)))[0];
+      ttsV = f(/en[-_]IE/i) || f(/en[-_]GB/i, /female|moira|serena|kate|martha|libby|sonia|maisie|stephanie|susan|hazel/i) || f(/en[-_](GB|ZA|AU)/i) || f(/^en/i) || null;
+    } catch (e) {
+    }
+  }, voxCtx2 = function() {
+    try {
+      if (!zzfxX) zzfxX = new (window.AudioContext || window.webkitAudioContext)();
+      if (zzfxX.state === "suspended") zzfxX.resume();
+      return zzfxX;
+    } catch (e) {
+      return null;
+    }
+  }, unlockAudio2 = function() {
+    const c = voxCtx2();
+    if (!c) return;
+    try {
+      const b = c.createBuffer(1, 1, 22050), x = c.createBufferSource();
+      x.buffer = b;
+      x.connect(c.destination);
+      x.start(0);
+    } catch (e) {
+    }
+  }, voxLoad2 = function(t, cb) {
+    const h = vhash2(t);
+    if (!VOX[h]) {
+      if (cb) cb(null);
+      return;
+    }
+    let b = voxBufs[h];
+    if (b && b.buf) {
+      if (cb) cb(b.buf);
+      return;
+    }
+    if (b) {
+      if (cb) b.cbs.push(cb);
+      return;
+    }
+    b = voxBufs[h] = { buf: null, cbs: cb ? [cb] : [] };
+    const c = voxCtx2(), done = (x) => {
+      b.buf = x;
+      if (!x) delete voxBufs[h];
+      const l = b.cbs;
+      b.cbs = [];
+      l.forEach((f) => f(x));
+    };
+    if (!c) return done(null);
+    fetch("voice/" + h + ".mp3").then((r) => {
+      if (!r.ok) throw 0;
+      return r.arrayBuffer();
+    }).then((a) => c.decodeAudioData(a, (x) => done(x), () => done(null))).catch(() => done(null));
+  }, hush2 = function() {
+    voxSeq++;
+    try {
+      if (voxSrc) voxSrc.stop();
+    } catch (e) {
+    }
+    voxSrc = null;
+    if (window.speechSynthesis) try {
+      speechSynthesis.cancel();
+    } catch (e) {
+    }
+  }, ttsSpeak2 = function(t) {
+    if (!window.speechSynthesis) return;
+    try {
+      const u = new SpeechSynthesisUtterance(t);
+      u.rate = 0.95;
+      u.pitch = 1.05;
+      if (ttsV) {
+        u.voice = ttsV;
+        u.lang = ttsV.lang;
+      }
+      speechSynthesis.speak(u);
+    } catch (e) {
+    }
+  }, speak2 = function(t) {
+    if (!S.sound || S.voice === false || !t) return;
+    hush2();
+    const my = voxSeq;
+    if (!VOX[vhash2(t)]) return ttsSpeak2(t);
+    voxLoad2(t, (buf) => {
+      if (my !== voxSeq || !S.sound || S.voice === false) return;
+      const c = voxCtx2();
+      if (!buf || !c) return ttsSpeak2(t);
+      try {
+        const x = c.createBufferSource();
+        x.buffer = buf;
+        x.connect(c.destination);
+        x.start(0);
+        voxSrc = x;
+      } catch (e) {
+        ttsSpeak2(t);
+      }
+    });
+  }, say2 = function(t, quiet) {
     const s = $("say");
     if (!s || !t) return;
+    if (!quiet) speak2(t);
     s.textContent = t;
     s.classList.remove("show");
     void s.offsetWidth;
@@ -3160,6 +3284,7 @@ var _a, _b, _c, _d, _e, _f, _g, _h;
     if (typeNext) {
       typeNext = false;
       typeStory2(L.story);
+      speak2(L.story);
     } else if (!typeTimer || $("story").textContent.length >= L.story.length) {
       clearInterval(typeTimer);
       typeTimer = null;
@@ -3170,7 +3295,7 @@ var _a, _b, _c, _d, _e, _f, _g, _h;
     $("locks").innerHTML = L.locks.map((k, i) => {
       const done = s.solved.includes(i);
       return `<article class="lock${done ? " done" : ""}${done && i === lastSolved ? " fresh" : ""}${!done && k.type === "flowchart" ? " wide" : ""}" id="lock${i}">
-    <div class="lhead"><span class="num">${done ? "\u2713" : i + 1}</span><div><h3>${esc(k.t)}</h3><div class="skill">${esc(k.s)}${k.kit && mi === 0 && !APP ? ` \xB7 kit page ${k.kit}` : ""}</div></div></div>
+    <div class="lhead"><span class="num">${done ? "\u2713" : i + 1}</span><div><h3>${esc(k.t)}</h3><div class="skill">${esc(k.s)}${k.kit && mi === 0 && !APP ? ` \xB7 kit page ${k.kit}` : ""}</div></div>${!done && k.d && k.d.intro ? `<button type="button" class="readme" data-read="${i}" aria-label="Read the instructions to me">\u{1F50A}</button>` : ""}</div>
     ${done ? `<div class="msg good">Unlocked! You found the letter <b class="code" style="font-size:22px">${esc(k.r)}</b></div>` : `<details class="puz"${mi !== 0 || APP ? " open" : ""}><summary>${mi !== 0 || APP ? "The puzzle" : "Show the puzzle on screen"}</summary><div class="pz">${R[k.type] ? R[k.type](k.d, i) : "<p>This puzzle needs a newer version of the game. Try refreshing the page.</p>"}</div></details>
     <form class="row" data-i="${i}" autocomplete="off"><label for="in${i}" class="skill" style="flex-basis:100%">Code for lock ${i + 1}</label><input type="text" id="in${i}" maxlength="${(k.max || 10) + 3}"><button class="go" type="submit">Unlock</button><button type="button" data-hint="${i}">Hint${s.hints[i] ? ` (${s.hints[i]}/2)` : ""}</button></form>
     <div class="msg" id="msg${i}" aria-live="polite"></div>
@@ -3216,6 +3341,8 @@ var _a, _b, _c, _d, _e, _f, _g, _h;
       fm.textContent = s.fhint ? L.final.hints.slice(0, s.fhint).join(" ") : "";
     }
     $("soundBtn").textContent = S.sound ? "Sound on" : "Sound off";
+    $("voiceBtn").textContent = S.voice !== false ? "Voice on" : "Voice off";
+    $("voiceBtn").setAttribute("aria-pressed", S.voice !== false ? "true" : "false");
     $("soundBtn").setAttribute("aria-pressed", S.sound ? "true" : "false");
     $("starCount").textContent = `\u2605 ${totalStars2()}`;
     renderMini2();
@@ -3259,6 +3386,7 @@ var _a, _b, _c, _d, _e, _f, _g, _h;
     clock2();
   }, goLevel2 = function(k) {
     if (!lvOf(k) || !canPlay(k)) return;
+    hush2();
     sfx2("tick");
     if (k !== S.cur) {
       pause2();
@@ -3498,7 +3626,7 @@ var _a, _b, _c, _d, _e, _f, _g, _h;
     Promise.all([loadDaily2(), loadWorlds2()]).then(afterLoad2);
     initDB();
   };
-  var snap = snap2, save = save2, valid = valid2, load = load2, party = party2, sfx = sfx2, fanfare = fanfare2, hap = hap2, buzz = buzz2, beep = beep2, say = say2, boltDo = boltDo2, burstAt = burstAt2, flyLetter = flyLetter2, floatText = floatText2, typeStory = typeStory2, startCountdown = startCountdown2, setBand = setBand2, onLockOk = onLockOk2, onWrong = onWrong2, pixGrid = pixGrid2, pigSVG = pigSVG2, flowSVG = flowSVG2, netSVG = netSVG2, clockSVG = clockSVG2, hintsUsed = hintsUsed2, starsFor = starsFor2, stats = stats2, badgeList = badgeList2, checkBadges = checkBadges2, totalStars = totalStars2, allEntries = allEntries2, boardFor = boardFor2, pushShared = pushShared2, shareNote = shareNote2, boardTable = boardTable2, renderBoardBits = renderBoardBits2, renderMini = renderMini2, tile = tile2, render = render2, now = now2, fmt = fmt2, clock = clock2, start = start2, pause = pause2, goLevel = goLevel2, nextKey = nextKey2, show = show2, renderMap = renderMap2, renderAch = renderAch2, renderLB = renderLB2, winLevel = winLevel2, newGate = newGate2, showAnswers = showAnswers2, renderGrownBoard = renderGrownBoard2, okLevel = okLevel2, okDaily = okDaily2, afterLoad = afterLoad2, useDaily = useDaily2, loadDaily = loadDaily2, loadWorlds = loadWorlds2, appSetup = appSetup2, boot = boot2;
+  var snap = snap2, save = save2, valid = valid2, load = load2, party = party2, sfx = sfx2, fanfare = fanfare2, hap = hap2, buzz = buzz2, beep = beep2, vhash = vhash2, pickTts = pickTts2, voxCtx = voxCtx2, unlockAudio = unlockAudio2, voxLoad = voxLoad2, hush = hush2, ttsSpeak = ttsSpeak2, speak = speak2, say = say2, boltDo = boltDo2, burstAt = burstAt2, flyLetter = flyLetter2, floatText = floatText2, typeStory = typeStory2, startCountdown = startCountdown2, setBand = setBand2, onLockOk = onLockOk2, onWrong = onWrong2, pixGrid = pixGrid2, pigSVG = pigSVG2, flowSVG = flowSVG2, netSVG = netSVG2, clockSVG = clockSVG2, hintsUsed = hintsUsed2, starsFor = starsFor2, stats = stats2, badgeList = badgeList2, checkBadges = checkBadges2, totalStars = totalStars2, allEntries = allEntries2, boardFor = boardFor2, pushShared = pushShared2, shareNote = shareNote2, boardTable = boardTable2, renderBoardBits = renderBoardBits2, renderMini = renderMini2, tile = tile2, render = render2, now = now2, fmt = fmt2, clock = clock2, start = start2, pause = pause2, goLevel = goLevel2, nextKey = nextKey2, show = show2, renderMap = renderMap2, renderAch = renderAch2, renderLB = renderLB2, winLevel = winLevel2, newGate = newGate2, showAnswers = showAnswers2, renderGrownBoard = renderGrownBoard2, okLevel = okLevel2, okDaily = okDaily2, afterLoad = afterLoad2, useDaily = useDaily2, loadDaily = loadDaily2, loadWorlds = loadWorlds2, appSetup = appSetup2, boot = boot2;
   const D = { "app": true, "dailyUrl": "../daily.json", "levels": [{ "name": "Robot Lab Breakout", "tag": "Level 1", "story": "BOLT the helper robot has glitched and locked the lab! Crack all six locks to collect the letters of his secret reboot word, then type it in before the clock runs out.", "limit": 45, "locks": [{ "t": "BOLT's Name Badge", "s": "Binary numbers", "type": "binary", "h": "6f352635", "r": "E", "hints": ["Only add the numbers above the lights that are ON (filled in).", "The first row has the 4-light and the 1-light ON. 4 + 1 = 5. Now do the other three rows."], "max": 4, "kit": 4, "d": { "rows": ["0101", "0011", "1001", "0111"] } }, { "t": "The Arrow Program", "s": "Algorithms and sequencing", "type": "grid", "h": "b0ce3d07", "r": "R", "hints": ["Only write down the letter where each instruction STOPS, not every square you pass.", "The first instruction is 2 squares right from the star. You land on G."], "max": 5, "kit": 5, "d": { "grid": [["*", "K", "G", "P", "Z"], ["R", "M", "T", "D", "S"], ["H", "W", "L", "Y", "C"], ["A", "N", "E", "F", "J"], ["U", "X", "Q", "V", "I"]], "program": [["right", 2], ["down", 3], ["left", 2], ["up", 2], ["right", 4]] } }, { "t": "BOLT's Secret Diary", "s": "Codes and encryption", "type": "cipher", "h": "abc6567f", "r": "B", "hints": ["Find each scrambled letter on the code strip, then count 3 letters to the LEFT.", "W K H becomes T H E. The password is the last word."], "max": 6, "kit": 6, "d": { "enc": "WKH SDVVZRUG LV PDJQHW", "shift": 3 } }, { "t": "The Light Show Loop", "s": "Loops", "type": "loops", "h": "72fcfb64", "r": "O", "hints": ["The inside REPEAT runs fully every time the outside REPEAT runs once.", "Each time through the big loop: 1 red and 3 blues. The big loop runs twice."], "max": 4, "kit": 7, "d": { "program_lines": ["REPEAT 2 TIMES:", "    flash RED", "    REPEAT 3 TIMES:", "        flash BLUE", "flash GREEN", "REPEAT 4 TIMES:", "    flash YELLOW"] } }, { "t": "Robot Line-Up", "s": "Logical thinking", "type": "robots", "h": "d26456e1", "r": "T", "hints": ["BOLT has battery 3, so BOLT can't have the blue antenna (blue has battery 8).", "NUT is green and BOLT isn't blue, so ZIP must be blue, which means ZIP has battery 8."], "max": 3, "kit": 8, "d": { "intro": "BOLT, ZIP and NUT each have a different antenna (red, green, blue) and battery number (3, 5, 8). The code is BOLT's, ZIP's, then NUT's battery number.", "clues": ["NUT's antenna is green.", "BOLT's battery number is 3.", "The robot with the blue antenna has battery number 8.", "ZIP's antenna is not red."] } }, { "t": "The Broken Screen", "s": "Pixels and screens", "type": "pixels", "h": "87e38583", "r": "O", "hints": ["Work one row at a time. Colour a square only where the chip says 1.", "The picture shows two digits side by side, with a blank column between them."], "max": 2, "kit": 9, "d": { "pixel_rows": ["1010111", "1010001", "1110111", "0010100", "0010111"] } }], "final": { "title": "The Reboot Lock", "button": "Reboot BOLT", "done": "BOLT rebooted! The lab doors are open.", "winTitle": "BOLT is back!", "teaser": "", "clue": "Unscramble them to find the magic word that fixes a glitched computer.", "hints": ["It's what grown-ups say when a computer freezes: 'Have you tried turning it off and on...'", "It starts with R and has two O's next to each other."], "h": "2a320c78" }, "teaser": "" }, { "name": "Memory Maze", "tag": "Level 2", "story": "BOLT is awake, but his memory is scrambled! Five memory chips are jumbled up. Fix them all to collect the letters of the word BOLT uses to think things through.", "limit": 35, "locks": [{ "t": "The Name Chip", "s": "Binary and letter codes", "type": "binary5", "h": "7a52fdbb", "r": "G", "hints": ["Row 1 has the 16, 2 and 1 lights ON: 16+2+1 = 19. The 19th letter is S.", "The six numbers are 19, 5, 14, 19, 15, 18."], "max": 6, "d": { "rows": ["10011", "00101", "01110", "10011", "01111", "10010"], "intro": "This chip uses 5 lights worth 16, 8, 4, 2 and 1. Add up each row, then turn the number into a letter: A=1, B=2, C=3 and so on." } }, { "t": "The Sorting Machine", "s": "If / else decisions", "type": "sorter", "h": "9c2b75a3", "r": "I", "hints": ["Check the rules in order. As soon as one rule is true, stop and drop the number.", "Bin A gets 7, 9, 6 and 8. Now sort the rest."], "max": 3, "d": { "items": [7, 2, 9, 4, 3, 6, 1, 8], "code": ["FOR each number:", "    IF number > 5:", "        drop it in bin A", "    ELSE IF number is even:", "        drop it in bin B", "    ELSE:", "        drop it in bin C"], "intro": "BOLT's sorting machine drops each number into bin A, B or C. Follow the rules for every number. The code is how many numbers land in bin A, then B, then C." } }, { "t": "The Number Message", "s": "Number codes", "type": "a1z26", "h": "1eea33e3", "r": "L", "hints": ["Use the alphabet strip: count along to each number.", "20 is T and 15 is O."], "max": 6, "d": { "nums": [20, 15, 18, 17, 21, 5], "intro": "BOLT hid a word as numbers. Each number is a letter's place in the alphabet (A=1, Z=26). Decode it to find the part that makes his wheels turn." } }, { "t": "The Charging Pattern", "s": "Patterns and sequences", "type": "sequence", "h": "234fef64", "r": "C", "hints": ["Look at the gaps between the numbers: +1, +2, +3...", "16 + 6 = 22. What comes after 22?"], "max": 4, "d": { "seq": [1, 2, 4, 7, 11, 16], "intro": "BOLT's battery charges in a pattern. Work out the rule and find the next TWO numbers. Type them one after the other as the code." } }, { "t": "The Map Chip", "s": "Coordinates", "type": "coords", "h": "320ca3f6", "r": "O", "hints": ["The first number goes ACROSS, the second goes UP. (1,5) is top left.", "Five points make a line along the top. The others drop down the middle."], "max": 1, "d": { "points": [[1, 5], [2, 5], [3, 5], [4, 5], [5, 5], [4, 4], [3, 3], [3, 2], [3, 1]], "intro": "The map chip stores a picture as coordinates (across, up). Light up every point on the grid to reveal a number." } }], "final": { "title": "The Memory Lock", "button": "Restore memory", "done": "Memory restored! BOLT remembers everything.", "winTitle": "Memory fixed!", "teaser": "BOLT's memory got scrambled in the reboot. Can you fix it?", "clue": "Unscramble the letters to find what BOLT uses to think things through.", "hints": ["It's a type of thinking puzzle you solved in Level 1, the Robot Line-Up.", "It starts with L and ends with C."], "h": "b1d21631" }, "teaser": "BOLT's memory got scrambled in the reboot. Can you fix it?" }, { "name": "Space Signal", "tag": "Level 3", "story": "BOLT's antenna has picked up a mystery signal from space! Decode five transmissions to find out what's circling the Earth and sending him messages.", "limit": 40, "locks": [{ "t": "Binary Adding Machine", "s": "Binary addition", "type": "binadd", "h": "2297cac4", "r": "T", "hints": ["Work from the RIGHT, just like normal adding. 1 + 1 = 10: write 0, carry 1.", "Check it in normal numbers: 0101 is 5 and 0011 is 3. 5 + 3 = 8. What is 8 in binary?"], "max": 4, "d": { "a": "0101", "b": "0011", "intro": "Computers add in binary. Work out 0101 + 0011 and write the answer as 4 binary digits. Tip: in binary, 1 + 1 = 10, so you write 0 and carry 1." } }, { "t": "The Spiral Route", "s": "Algorithms with turns", "type": "spiral", "h": "28068eb7", "r": "B", "hints": ["Forward 1 from the star, facing up, lands on P. Then turn right to face right.", "After the second turn the rover faces DOWN. After the third, it faces LEFT."], "max": 5, "d": { "grid": [["M", "L", "Q", "W", "K"], ["T", "A", "P", "I", "F"], ["Y", "H", "*", "N", "D"], ["B", "E", "R", "X", "G"], ["J", "U", "C", "S", "V"]], "program": ["Forward 1", "Turn right", "Forward 1", "Turn right", "Forward 2", "Turn right", "Forward 2", "Turn right", "Forward 3"], "intro": "The rover starts on the star, facing UP. Follow the program. 'Turn right' spins it on the spot. Write down the letter after every Forward move." } }, { "t": "Mirror Code", "s": "Codes and encryption", "type": "atbash", "h": "29cb654a", "r": "O", "hints": ["Find each letter on the bottom row of the strip and read the letter above it.", "H becomes S and Z becomes A."], "max": 9, "d": { "intro": "The signal uses a mirror code: the alphabet is flipped, so A swaps with Z, B with Y, C with X and so on. Use the mirror strip to decode the word.", "enc": "HZGVOORGV" } }, { "t": "Launch Line-Up", "s": "Logical thinking", "type": "lineup", "h": "c5d32e95", "r": "I", "hints": ["VOLT takes space 1. NUT and ZIP must stand side by side, in that order.", "If NUT and ZIP took spaces 2 and 3, BOLT would be last, and that breaks a clue."], "max": 4, "d": { "robots": ["BOLT", "ZIP", "NUT", "VOLT"], "clues": ["VOLT is first in line.", "ZIP stands directly to the right of NUT.", "BOLT is not last."], "intro": "Four robots line up in spaces 1 to 4 for the rocket launch. Use the clues to find the order. The code is the first letter of each robot's name, from space 1 to space 4." } }, { "t": "The Signal Booster", "s": "Variables", "type": "variables", "h": "3c0cb3b4", "r": "R", "hints": ["First time round: 2 x 2 = 4, then 4 - 1 = 3. Now x is 3.", "Second time: 3 x 2 = 6, then 6 - 1 = 5. One more time to go."], "max": 1, "d": { "code": ["x = 2", "REPEAT 3 TIMES:", "    x = x * 2", "    x = x - 1", "SHOW x"], "intro": "A variable is a box that holds a number that can change. Follow the program line by line and keep track of x. The code is the number it shows at the end." } }], "final": { "title": "The Signal Lock", "button": "Decode signal", "done": "Signal decoded: a friendly space probe is waving hello!", "winTitle": "Signal decoded!", "teaser": "A mystery signal is beaming down from space...", "clue": "Unscramble the letters to find the path something travels as it circles around a planet.", "hints": ["The Moon does this around the Earth, too.", "It starts with O and ends with T."], "h": "93a640af" }, "teaser": "A mystery signal is beaming down from space..." }, { "name": "The Big Upgrade", "tag": "Level 4", "story": "Final level! BOLT has earned an upgrade, and the robot factory needs your help to install it. Pass five tough engineering tests to give BOLT his brand-new part.", "limit": 45, "locks": [{ "t": "Bubble Sort Test", "s": "Sorting algorithms", "type": "bubble", "h": "300ca0d0", "r": "N", "hints": ["First pass: 4 and 2 swap, then 4 and 3 swap, then 4 and 1 swap. That's 3 swaps, and the row is 2, 3, 1, 4.", "Second pass: 3 and 1 swap. Third pass: 2 and 1 swap. Count them all."], "max": 1, "d": { "list": [4, 2, 3, 1], "intro": "Bubble sort puts numbers in order by looking at neighbours. If the left one is bigger, they SWAP. Keep going along the row, again and again, until nothing needs swapping. How many swaps does it take to sort 4, 2, 3, 1 smallest to biggest?" } }, { "t": "Logic Gate Panel", "s": "Logic gates", "type": "gates", "h": "60c82ad1", "r": "A", "hints": ["A AND B: A is 1 but B is 0, so not both are ON. Light 1 is 0.", "NOT B flips 0 into 1. B OR C: is at least one of them ON?"], "max": 3, "d": { "inputs": { "A": 1, "B": 0, "C": 1 }, "gates": ["Light 1 = A AND B", "Light 2 = NOT B", "Light 3 = B OR C"], "intro": "Robots make decisions with logic gates. 1 means ON and 0 means OFF. AND is ON only if both inputs are ON. OR is ON if at least one is ON. NOT flips the input. Work out lights 1, 2 and 3." } }, { "t": "The Factory Lock", "s": "Codes and keys", "type": "caesar5", "h": "adbeb0b4", "r": "B", "hints": ["The Bubble Sort Test answer is the shift. It's 5.", "H shifted back 5 is C, and N shifted back 5 is I."], "max": 7, "d": { "shift": 5, "intro": "This code shifts every letter forward. The secret shift number is the answer to the Bubble Sort Test! Shift each letter BACK by that number to find the part BOLT needs.", "enc": "HNWHZNY" } }, { "t": "Quality Score", "s": "Loops with if", "type": "score", "h": "13eb1dac", "r": "R", "hints": ["3 is odd, so score = 0 - 1 = -1. Then 8 is even: -1 + 8 = 7.", "Keep going: 5 is odd, 10 is even, 2 is even."], "max": 2, "d": { "code": ["score = 0", "FOR each number in [3, 8, 5, 10, 2]:", "    IF number is even:", "        score = score + number", "    ELSE:", "        score = score - 1", "SHOW score"], "intro": "The factory checks each part with this program. Follow it number by number and keep track of the score. The code is the score at the end." } }, { "t": "Shortest Route", "s": "Networks and paths", "type": "graph", "h": "1ceb2bd7", "r": "I", "hints": ["Going straight from the Lab to the Store costs 4. Is there a cheaper way to reach the Store?", "Lab to Hall to Store costs 2 + 1 = 3. Now find the best way from the Store to the Charger."], "max": 2, "d": { "nodes": { "Lab": [0, 1], "Store": [1, 0], "Hall": [1, 2], "Workshop": [2, 1], "Charger": [3, 1] }, "edges": [["Lab", "Store", 4], ["Lab", "Hall", 2], ["Hall", "Store", 1], ["Store", "Workshop", 5], ["Hall", "Workshop", 8], ["Workshop", "Charger", 3], ["Store", "Charger", 9]], "intro": "BOLT needs the shortest route from the Lab to the Charger. Each corridor shows how many metres long it is. Find the route with the smallest total. The code is that total distance." } }], "final": { "title": "The Upgrade Lock", "button": "Install upgrade", "done": "Upgrade installed. BOLT 2.0 is online!", "winTitle": "BOLT 2.0!", "teaser": "The final test: give BOLT his big upgrade.", "clue": "Unscramble the letters to find BOLT's shiny new upgrade: the part he thinks with.", "hints": ["You have one, too. It lives in your head.", "It starts with B and ends with N."], "h": "527677d3" }, "teaser": "The final test: give BOLT his big upgrade." }], "grown": "b850f046", "secret": "XV0iTklBUkIiICwiMTEiICwiODEiICwiVElVQ1JJQyIgLCIxMTAiICwiNSJbICxdIlRJQlJPIiAsIjkiICwiWk5CViIgLCJFVElMTEVUQVMiICwiTEVYSVAiICwiMDAwMSJbICxdIkNJR09MIiAsIjciICwiOTIyMiIgLCJFVVFST1QiICwiMjI0IiAsIlJPU05FUyJbICxdIlRPT0JFUiIgLCIyNCIgLCI1ODMiICwiNDE2MiIgLCJURU5HQU0iICwiU1JBRUciICwiNzkzNSJbWw==" };
   const APP = !!D.app;
   const LV = D.levels;
@@ -3601,6 +3729,24 @@ var _a, _b, _c, _d, _e, _f, _g, _h;
   const LINES = { ok: ["Beep boop, brilliant!", "Lock cracked!", "You're on fire!", "Nailed it!", "Click! It's open!", "Code-breaker power!", "Awesome thinking!"], bad: ["Bzzt! Not quite.", "Try again, you've got this!", "Hmm, check your working.", "Nearly! Have another go.", "Wrong code, but don't give up!"], hint: ["Here's a clue!", "Psst, read this!", "Hint coming up!"], start: ["Let's go!", "Codes, here we come!", "Timer's running!", "Mission start!"], last: ["One lock to go!", "Last lock, you can do it!"], final: ["Unscramble the letters!", "Now the secret word!"], win: ["WOO HOO!", "We did it!", "Best team ever!"] };
   const pick = (a) => a[Math.floor(Math.random() * a.length)];
   let boltT = null, combo = 0, lastSolved = -1, typeNext = false, typeTimer = null;
+  let ttsV = null, VOX = {}, voxBufs = {}, voxSrc = null, voxSeq = 0;
+  if (window.speechSynthesis) {
+    pickTts2();
+    try {
+      speechSynthesis.onvoiceschanged = pickTts2;
+    } catch (e) {
+    }
+  }
+  document.addEventListener("touchend", unlockAudio2, true);
+  document.addEventListener("click", unlockAudio2, true);
+  if (APP) try {
+    fetch("voice/index.json", { cache: "no-cache" }).then((r) => r.ok ? r.json() : {}).then((j) => {
+      VOX = j || {};
+      Object.values(LINES).forEach((a) => a.forEach((t) => voxLoad2(t)));
+    }).catch(() => {
+    });
+  } catch (e) {
+  }
   let counting = false;
   const DECO = { lab: ["\u2699\uFE0F", "\u{1F529}", "\u{1F4A1}", "\u2699\uFE0F", "\u{1F527}", "\u{1F4A1}"], daily: ["\u2B50", "\u2728", "\u2B50", "\u{1F31F}", "\u2728", "\u2B50"] };
   const binTable = (vals, rows, label) => `<div class="bin" style="grid-template-columns:repeat(${vals.length},34px) auto">${vals.map((v) => `<b>${v}</b>`).join("")}<span></span>${rows.map((r, k) => [...r].map((c) => `<span class="dot${c === "1" ? " on" : ""}"></span>`).join("") + `<span class="skill">${label} ${k + 1}</span>`).join("")}</div>`;
@@ -3873,13 +4019,20 @@ ${"-".repeat(d.a.length + 2)}
       removeEntry(rm.dataset.rm, rm.dataset.u || null);
       return;
     }
+    const rd = ev.target.closest("[data-read]");
+    if (rd) {
+      const k = cur().locks[+rd.dataset.read];
+      if (k && k.d) speak2(k.d.intro);
+      return;
+    }
     const h = ev.target.closest("[data-hint]");
     if (h) {
       const i = +h.dataset.hint, s = st();
       if (s.hints[i] < 2) {
         s.hints[i]++;
         sfx2("hint");
-        say2(pick(LINES.hint));
+        say2(pick(LINES.hint), true);
+        speak2(cur().locks[i].hints[s.hints[i] - 1]);
       }
       save2();
       render2();
@@ -3919,7 +4072,8 @@ ${"-".repeat(d.a.length + 2)}
     if (s.fhint < 2) {
       s.fhint++;
       sfx2("hint");
-      say2(pick(LINES.hint));
+      say2(pick(LINES.hint), true);
+      speak2(cur().final.hints[s.fhint - 1]);
     }
     save2();
     render2();
@@ -3933,9 +4087,18 @@ ${"-".repeat(d.a.length + 2)}
   });
   $("soundBtn").addEventListener("click", () => {
     S.sound = !S.sound;
+    if (!S.sound) hush2();
     save2();
     render2();
   });
+  $("voiceBtn").addEventListener("click", () => {
+    S.voice = S.voice === false;
+    if (!S.voice) hush2();
+    else speak2("Hello! I'm BOLT.");
+    save2();
+    render2();
+  });
+  $("storyRead").addEventListener("click", () => speak2(cur().story));
   $("winClose").addEventListener("click", () => $("win").classList.remove("show"));
   $("winGo").addEventListener("click", () => {
     $("win").classList.remove("show");

@@ -1,11 +1,19 @@
 // Robot Lab Breakout offline support: game files come from the cache, the daily puzzle from the network when possible.
-const CACHE = "rlb-ba8a0149cd";
+const CACHE = "rlb-81cfc7038f";
 const FILES = ["./", "index.html", "worlds.json", "manifest.webmanifest", "fonts/Baloo2-700.ttf", "fonts/Baloo2-800.ttf", "fonts/Nunito-400.ttf", "fonts/Nunito-700.ttf", "fonts/Nunito-800.ttf", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
-self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
+self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith("rlb-") && k !== CACHE && k !== "rlb-voice").map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener("fetch", e => {
   const url = new URL(e.request.url);
   if (e.request.method !== "GET" || url.origin !== location.origin) return;
+  if (url.pathname.endsWith("/voice/index.json")) {  // list of recordings: always ask for the newest
+    e.respondWith(fetch(e.request).then(r => { if (r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); } return r; }).catch(() => caches.match(e.request, {ignoreSearch: true})));
+    return;
+  }
+  if (url.pathname.endsWith(".mp3")) {  // recordings never change (named by their words): keep them for offline play
+    e.respondWith(caches.open("rlb-voice").then(c => c.match(e.request).then(h => h || fetch(e.request).then(r => { if (r.ok) c.put(e.request, r.clone()); return r; }))));
+    return;
+  }
   if (url.pathname.endsWith("/daily.json")) {
     const key = new Request(url.origin + url.pathname);
     e.respondWith(fetch(e.request).then(r => { if (r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(key, copy)); } return r; }).catch(() => caches.match(key)));
