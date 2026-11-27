@@ -12,7 +12,7 @@ Voice: en-IE-EmilyNeural (Irish English, female).
 
 Run:  python3 tools/make_voice.py            (needs internet; GitHub Actions runs it on every push)
 """
-import asyncio, json, os, sys, urllib.request
+import asyncio, json, os, sys, time, urllib.request
 from xml.sax.saxutils import escape
 
 VOICE = "en-IE-EmilyNeural"
@@ -46,9 +46,15 @@ def main():
         if os.path.exists(path) and os.path.getsize(path) > 1000:
             continue
         try:
-            if key: azure(text, path, key, region)
-            else: asyncio.run(edge(text, path))
-            if os.path.getsize(path) < 1000: raise RuntimeError("empty recording")
+            for attempt in range(3):  # the service sometimes drops a request; try again
+                try:
+                    if key: azure(text, path, key, region)
+                    else: asyncio.run(edge(text, path))
+                    if os.path.getsize(path) < 1000: raise RuntimeError("empty recording")
+                    break
+                except Exception:
+                    if attempt == 2: raise
+                    time.sleep(3)
             made += 1
         except Exception as e:
             failed += 1
