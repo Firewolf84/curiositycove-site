@@ -133,10 +133,10 @@ const voiceFor = lang => {
   return null;
 };
 const hasAf = () => !!voiceFor('af');
-const VOICE = false; // voice-over switched off for now; set to true to bring it back
-if (!VOICE) document.body.classList.add('novoice');
-function say(parts) {
-  if (!VOICE || !S.sound || !('speechSynthesis' in window)) return;
+const VOICE = true; // read-aloud is on by default; each family can switch it off (S.voice)
+function say(parts) { if (typeof voxSay === 'function') return voxSay(parts); }
+function sayOld(parts) {
+  if (!('speechSynthesis' in window)) return;
   if (typeof parts === 'string') parts = [[parts, 'en']];
   try {
     speechSynthesis.cancel();
@@ -3406,6 +3406,7 @@ function teachPagesView(a, head, next, skip, N) {
   ctx.chk = ctx.chk || {}; ctx.exs2 = ctx.exs2 || {};
   const c = pg.c ? pg.c.split('|') : null; if (c && !ctx.chk[i]) ctx.chk[i] = { order: shuffle(c.slice(1)), wrong: [], done: false };
   const st = ctx.chk[i], v = typeof pg.v === 'function' ? pg.v() : (pg.v || '');
+  const spk = a.id + ':' + i; if (ctx._sp !== spk) { ctx._sp = spk; setTimeout(() => { if (screen === 'teach' && ctx._sp === spk) voxSay([[pg.t, 'en']].concat(c ? [[c[0], 'en']] : [])); }, 350); }
   const dots = `<div class="dots">${pages.map((_, j) => `<i class="${j < i ? 'done' : j === i ? 'on' : ''}"></i>`).join('')}</div>`;
   const ex = pg.ex ? `<div class="card" style="border-left:6px solid var(--sea)"><h3 style="margin-top:0">✏️ Worked example</h3><p class="story" style="margin:0">${mdT(pg.ex.q)}</p>${ctx.exs2[i] ? `<ol style="margin:8px 0 0;padding-left:22px">${pg.ex.s.map(x => `<li style="margin:4px 0">${mdT(x)}</li>`).join('')}</ol><p style="margin:6px 0 0"><b>Answer: ${mdT(pg.ex.a)}</b></p>` : `<div style="margin-top:8px">${BTN('tp-ex', 'Show me the steps')}</div>`}</div>` : '';
   const chk = c ? `<div class="card"><h3 style="margin-top:0">🤔 Check you understood</h3><p class="story" style="margin:0 0 8px">${mdT(c[0])}</p><div class="opts text">${st.order.map((o, j) => `<button class="opt ${st.done && o === c[1] ? 'ok' : ''} ${st.wrong.includes(o) ? 'no' : ''}" data-act="tp-chk" data-v="${esc(o)}" ${st.done || st.wrong.includes(o) ? 'disabled' : ''}>${esc(o)}</button>`).join('')}</div>${st.wrong.length && !st.done ? `<div class="banner">💡 ${mdT(pg.h2 || 'Not quite. Read the explanation above again, then try another answer.')}</div>` : ''}${st.done ? `<p class="story" style="margin:8px 0 0">${st.wrong.length ? '👍 Now you know.' : '🌟 Correct!'} ${pg.ce ? mdT(pg.ce) : ''}</p>` : ''}</div>` : '';
@@ -3415,11 +3416,12 @@ function teachPagesView(a, head, next, skip, N) {
     (last && can ? teachCredit(a) : '') + (can ? (last ? next(T.x ? '🧪 Try it yourself ▶' : 'Next ▶') : `<button class="btn coral" data-act="tp-next">Next page ▶</button>`) : '<p class="small mut" style="text-align:center">Answer the check question to continue.</p>') + skip;
 }
 EXT['tp-next'] = () => { ctx.pg = (ctx.pg || 0) + 1; render(); window.scrollTo(0, 0); };
-EXT['tp-ex'] = () => { ctx.exs2[ctx.pg || 0] = true; ding(); render(); };
+EXT['tp-ex'] = () => { ctx.exs2[ctx.pg || 0] = true; ding(); render(); const pg = TEACH[ctx.act.id].pages[ctx.pg || 0]; if (pg.ex) voxSay(exLines(pg.ex).map(x => [x, 'en'])); };
 EXT['tp-chk'] = b => { const i = ctx.pg || 0, pg = TEACH[ctx.act.id].pages[i], c = pg.c.split('|'), st = ctx.chk[i];
-  if (b.dataset.v === c[1]) { st.done = true; ding(); } else { st.wrong.push(b.dataset.v); buzz(); if (st.wrong.length >= 2) st.done = true; } render(); };
+  if (b.dataset.v === c[1]) { st.done = true; ding(); voxSay([['Correct!', 'en']].concat(pg.ce ? [[pg.ce, 'en']] : [])); } else { st.wrong.push(b.dataset.v); buzz(); if (st.wrong.length >= 2) { st.done = true; voxSay('The answer is ' + c[1] + '.'); } else voxSay(pg.h2 || 'Not quite. Read the explanation above again, then try another answer.'); } render(); };
 function exploreView(a, head, next, skip) {
   const T = TEACH[a.id]; if (!ctx.xs) ctx.xs = XP[T.x].init(T.xo || {});
+  if (ctx._sp !== 'xp:' + a.id) { ctx._sp = 'xp:' + a.id; setTimeout(() => { if (screen === 'teach') voxSay(T.xt || 'Use the buttons to change the picture and watch what happens.'); }, 350); }
   return head + `<div class="card"><h3 style="margin-top:0">🧪 Explore</h3><p class="story" style="margin:0 0 8px">${mdT(T.xt || 'Use the buttons to change the picture and watch what happens.')}</p>${XP[T.x].view(ctx.xs)}</div>` + next('Next ▶') + skip;
 }
 /* ---- Re-teach when stuck ---- */
@@ -3427,6 +3429,7 @@ XVIEWS.reteach = () => {
   const a = run.rtAct || run.act, T = TEACH[a.id], N = notesFor(a), sents = sentencesOf(learnText(a)), q = run.qs[run.i], w = workingFor(q, a);
   let ex = null; try { const qq = G[a.id](0); ex = { q: qq, w: workingFor(qq, a), ans: (qq.options.find(o => String(o.val) === String(qq.answer)) || {}).html || esc(qq.answer) }; } catch (e) { }
   if (!ctx.xs && T && T.x) ctx.xs = XP[T.x].init(T.xo || {});
+  if (!ctx._sp) { ctx._sp = 1; setTimeout(() => { if (screen === 'reteach') voxSay([['That one was tricky. Let\'s slow down and look at the idea differently.', 'en'], [(T && T.alt) || sents.join(' '), 'en']]); }, 350); }
   return top('💡 Let\'s look at it another way', 'quiz') + `<div class="card"><p class="story" style="margin:0">That one was tricky. Let's slow down and look at the idea differently.</p></div>
   <div class="card"><h3 style="margin-top:0">🔁 Another way to think about it</h3><p class="story" style="margin:0">${mdT(T && T.alt ? T.alt : sents.join(' '))}</p>${T && T.altv ? `<div style="text-align:center;margin-top:8px">${typeof T.altv === 'function' ? T.altv() : T.altv}</div>` : ''}</div>
   ${w ? `<div class="card" style="border-left:6px solid var(--sea)"><h3 style="margin-top:0">🧮 How to work out the question you were on</h3><ol style="margin:0;padding-left:22px">${w.slice(0, -1).map(x => `<li style="margin:4px 0">${esc(x)}</li>`).join('')}</ol><p class="small mut" style="margin:6px 0 0">Do the last step yourself when you go back.</p></div>` : ''}
@@ -3968,7 +3971,7 @@ const scaleNote = () => ((P() || {}).cur || 'caps') === 'caps' ? 'CAPS scale: 7 
 function capsLevel(pct) { if (((P() || {}).cur || 'caps') !== 'caps') return CAM_BANDS.find(x => pct >= x[0]); return [[80, 7, 'Outstanding'], [70, 6, 'Meritorious'], [60, 5, 'Substantial'], [50, 4, 'Adequate'], [40, 3, 'Moderate'], [30, 2, 'Elementary'], [0, 1, 'Not achieved']].find(x => pct >= x[0]); }
 
 /* ---------- screens ---------- */
-const top = (title, backTo = 'home', extra = '') => `<div class="top"><button class="back" data-go="${backTo}" aria-label="Back">‹</button><h2>${title}</h2>${extra}</div>`;
+const top = (title, backTo = 'home', extra = '') => `<div class="top"><button class="back" data-go="${backTo}" aria-label="Back">‹</button><h2>${title}</h2>${extra}${typeof voxBtn === 'function' ? voxBtn() : ''}</div>`;
 const scene = () => `<svg viewBox="0 0 400 190" aria-hidden="true"><defs><linearGradient id="sk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7FD3E0"/><stop offset="1" stop-color="#C9F0F2"/></linearGradient></defs>
 <rect width="400" height="190" fill="url(#sk)"/><circle cx="330" cy="46" r="26" fill="#FFC845"/><circle cx="330" cy="46" r="36" fill="#FFC845" opacity=".25"/>
 <path d="M210 120 Q260 40 320 118 Z" fill="#3FA34D"/><path d="M228 118 Q262 70 300 118Z" fill="#2E8A3E"/><path d="M262 70 q-4 -26 6 -40 M268 30 q14 -4 22 6 M268 30 q-14 -6 -22 4 M268 30 q4 12 14 16 M268 30 q-6 12 -16 14" stroke="#1F6B2E" stroke-width="4" fill="none" stroke-linecap="round"/>
@@ -4862,6 +4865,7 @@ function viewParent() {
   <label class="choice" style="margin-top:6px;cursor:pointer"><input type="radio" name="s-mode" value="free" ${p.mode !== 'structured' ? 'checked' : ''} style="width:22px;height:22px"><span><b>🗺️ Unstructured (explore)</b><br><span class="small mut">The whole year's syllabus is open. Your child picks any lesson, in any order, in their own time.</span></span></label>
   <label class="choice" style="cursor:pointer"><input type="radio" name="s-mode" value="structured" ${p.mode === 'structured' ? 'checked' : ''} style="width:22px;height:22px"><span><b>🧭 Structured (guided path)</b><br><span class="small mut">Lessons follow the lesson plan, term by term. Each one unlocks when the one before it is completed.</span></span></label>
   <label class="row small" style="margin-top:14px"><input type="checkbox" id="s-sound" ${S.sound ? 'checked' : ''} style="width:24px;height:24px"> Sound effects</label>
+  <label class="row small" style="margin-top:8px"><input type="checkbox" id="s-voice" ${S.voice !== false ? 'checked' : ''} style="width:24px;height:24px"> Read aloud (voice for lessons, videos and questions)</label>
   <button class="btn" data-act="s-save">Save settings</button></div>
   <button class="btn coral" data-act="plans">📚 Lesson plans for every subject</button>
   <div class="card"><h3>Level finder</h3><p class="small mut" style="margin:4px 0 0">The same level (${ageOf(p.grade)}) in every curriculum:</p><table>${Object.values(CUR).map(x => `<tr><td>${x.flag} ${x.name}</td><td class="n">${x.grades[p.grade]}</td></tr>`).join('')}</table></div>
@@ -4979,7 +4983,7 @@ app.addEventListener('click', e => {
     case 'setgoal': p.goal = b.dataset.v; save(); toast('Dream job saved!'); ctx.goal = undefined; return render();
     case 'parent': return go('gate');
     case 'gate': if (+$('#gate').value === ctx.ans) return go('parent'); toast('Not quite, try again'); return go('gate');
-    case 's-save': { const nc = $('#s-cur').value; p.cur = nc; p.grade = +$('#s-grade').value || 0; p.goal = $('#s-goal').value; if ($('#s-lang2')) p.lang2 = $('#s-lang2').value; S.sound = $('#s-sound').checked; p.mode = (document.querySelector('input[name=s-mode]:checked') || {}).value || 'free'; save(); toast(`Saved: ${CUR[nc].name} · ${p.mode === 'structured' ? 'Guided path' : 'Explore mode'}`); return render(); }
+    case 's-save': { const nc = $('#s-cur').value; p.cur = nc; p.grade = +$('#s-grade').value || 0; p.goal = $('#s-goal').value; if ($('#s-lang2')) p.lang2 = $('#s-lang2').value; S.sound = $('#s-sound').checked; if ($('#s-voice')) { S.voice = $('#s-voice').checked; voxApplyClass(); if (!S.voice) hush(); } p.mode = (document.querySelector('input[name=s-mode]:checked') || {}).value || 'free'; save(); toast(`Saved: ${CUR[nc].name} · ${p.mode === 'structured' ? 'Guided path' : 'Explore mode'}`); return render(); }
     case 'reset': if (b.dataset.sure) { p.skills = {}; p.history = []; p.assess = []; p.stars = 0; p.minutes = 0; save(); toast('Progress reset'); return render(); } b.dataset.sure = '1'; b.textContent = 'Tap again to confirm reset'; return;
   }
 });
@@ -5090,18 +5094,17 @@ function videoScript(a) {
 }
 const vidLen = sc => sc.reduce((t, s) => t + s.lines.reduce((u, l) => u + lineSecs(l, 1), 0) + (s.ask ? s.think || 6 : 0), 0);
 const mmss = s => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
-const vidStop = () => { clearTimeout(vidT); vidT = null; try { speechSynthesis.cancel(); } catch (e) { } };
+const vidStop = () => { clearTimeout(vidT); vidT = null; if (typeof hush === 'function') hush(); else try { speechSynthesis.cancel(); } catch (e) { } };
 function vidStep() {
   vidStop(); if (screen !== 'video' || !VID || !VID.playing) return;
   const s = VID.sc[VID.si], line = s.lines[VID.li], ms = lineSecs(line, VID.rate) * 1000 + (s.ask && VID.li === 0 ? (s.think || 6) * 1000 / VID.rate : 0);
   const adv = () => { if (screen !== 'video' || !VID.playing) return; if (VID.li < s.lines.length - 1) VID.li++; else if (VID.si < VID.sc.length - 1) { VID.si++; VID.li = 0; } else { VID.playing = false; VID.done = true; render(); return; } render(); vidStep(); };
-  let spoke = false;
-  if (VID.voice && 'speechSynthesis' in window) { try { const u = new SpeechSynthesisUtterance(plainT(line)), v = voiceFor('en'); if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'en-ZA'; u.rate = 0.95 * VID.rate;
-    u.onend = () => { if (!spoke) return; clearTimeout(vidT); vidT = setTimeout(adv, (s.ask && VID.li === 0 ? (s.think || 6) * 1000 : 700) / VID.rate); }; spoke = true; speechSynthesis.speak(u); vidT = setTimeout(adv, ms * 2.2); return; } catch (e) { } }
+  if (voxOn()) { let fired = false; const nx = () => { if (fired) return; fired = true; clearTimeout(vidT); vidT = setTimeout(adv, (s.ask && VID.li === 0 ? (s.think || 6) * 1000 : 600) / VID.rate); };
+    voxSay(line, nx); vidT = setTimeout(nx, ms * 2.5 + 5000); const nl = s.lines[VID.li + 1] || ((VID.sc[VID.si + 1] || {}).lines || [])[0]; if (nl) voxPrefetch([nl]); return; }
   vidT = setTimeout(adv, ms);
 }
 XVIEWS.video = () => {
-  const a = ctx.act; if (!VID || VID.id !== a.id) { const sc = videoScript(a); VID = { id: a.id, sc, si: 0, li: 0, playing: false, rate: 1, voice: 'speechSynthesis' in window, total: vidLen(sc) }; }
+  const a = ctx.act; if (!VID || VID.id !== a.id) { const sc = videoScript(a); VID = { id: a.id, sc, si: 0, li: 0, playing: false, rate: 1, total: vidLen(sc) }; }
   const s = VID.sc[VID.si], el = VID.sc.slice(0, VID.si).reduce((t, x) => t + x.lines.reduce((u, l) => u + lineSecs(l, 1), 0), 0) + s.lines.slice(0, VID.li).reduce((u, l) => u + lineSecs(l, 1), 0);
   const vis = s.vl ? s.vl[Math.min(VID.li, s.vl.length - 1)] : s.vis;
   const ask = s.ask ? `<div style="margin-top:10px">${s.ask.opts.map(o => `<div style="background:${VID.li > 0 && o === s.ask.ans ? '#2ECC71' : 'rgba(255,255,255,.12)'};border-radius:12px;padding:10px 14px;margin:6px 0;font-weight:700">${esc(o)}${VID.li > 0 && o === s.ask.ans ? ' ✓' : ''}</div>`).join('')}${VID.li === 0 && VID.playing ? '<p class="small" style="opacity:.8;margin:6px 0 0">⏳ Think… the answer is coming. Tap ⏯ to pause.</p>' : ''}</div>` : '';
@@ -5116,8 +5119,8 @@ XVIEWS.video = () => {
     ${VID.done ? '<p style="margin:8px 0 0;font-weight:800">🎉 The end! Ready for the questions?</p>' : ''}
   </div>
   <div style="display:flex;margin:10px 0 6px">${segs}</div>
-  <div class="row" style="gap:6px;flex-wrap:wrap;align-items:center">${cb('vid-prev', '⏮', 'Previous part')}${cb('vid-play', VID.playing ? '⏸ Pause' : VID.done ? '↻ Watch again' : '▶ Play', 'Play or pause')}${cb('vid-next', '⏭', 'Next part')}${cb('vid-rate', VID.rate + '×', 'Speed')}${'speechSynthesis' in window ? cb('vid-voice', VID.voice ? '🔊 Voice on' : '🔇 Voice off', 'Narration') : ''}<span class="small mut" style="margin-left:auto">${mmss(el)} / ${mmss(VID.total)}</span></div>
-  <p class="small mut" style="margin:8px 0">Captions are always shown, so the video works with the sound off too. Grown-ups can pause at any time to talk it through.</p>
+  <div class="row" style="gap:6px;flex-wrap:wrap;align-items:center">${cb('vid-prev', '⏮', 'Previous part')}${cb('vid-play', VID.playing ? '⏸ Pause' : VID.done ? '↻ Watch again' : '▶ Play', 'Play or pause')}${cb('vid-next', '⏭', 'Next part')}${cb('vid-rate', VID.rate + '×', 'Speed')}${cb('vid-voice', voxOn() ? '🔊 Voice on' : '🔇 Voice off', 'Narration')}<span class="small mut" style="margin-left:auto">${mmss(el)} / ${mmss(VID.total)}</span></div>
+  <p class="small mut" style="margin:8px 0">Captions are always shown, so the video works with the sound off too. Voice: Emily (Microsoft neural voice) where recorded, otherwise this device's voice. Grown-ups can pause at any time to talk it through.</p>
   <button class="btn coral" data-act="vid-quiz">🚀 Start the questions</button><button class="btn alt" data-act="start" data-id="${a.id}">🏫 Back to the step-by-step lesson</button>`;
 };
 EXT['vid-open'] = b => { vidStop(); const a = actBy(b.dataset.id) || ctx.act || (run && run.act); VID = null; go('video', { act: a }); VID.playing = true; render(); vidStep(); };
@@ -5126,7 +5129,7 @@ EXT['vid-next'] = () => { VID.si = Math.min(VID.sc.length - 1, VID.si + 1); VID.
 EXT['vid-prev'] = () => { if (VID.li > 0) VID.li = 0; else VID.si = Math.max(0, VID.si - 1), VID.li = 0; VID.done = false; render(); if (VID.playing) vidStep(); };
 EXT['vid-seek'] = b => { VID.si = +b.dataset.i; VID.li = 0; VID.done = false; render(); if (VID.playing) vidStep(); };
 EXT['vid-rate'] = () => { VID.rate = VID.rate === 1 ? 1.25 : VID.rate === 1.25 ? 0.75 : 1; render(); if (VID.playing) vidStep(); };
-EXT['vid-voice'] = () => { VID.voice = !VID.voice; render(); if (VID.playing) vidStep(); };
+EXT['vid-voice'] = () => { S.voice = !voxOn(); save(); voxApplyClass(); render(); if (VID.playing) vidStep(); else hush(); };
 EXT['vid-quiz'] = () => { vidStop(); const a = ctx.act, p = P(); p.taught = p.taught || {}; if (VID && (VID.done || VID.si >= VID.sc.length - 3)) { p.taught[a.id] = 1; save(); } if (p.taught[a.id]) { ctx = { act: a }; return playAct(a); } startAct(a); };
 const vidBtn = a => { let m = 0; try { m = Math.max(1, Math.round(vidLen(videoScript(a)) / 60)); } catch (e) { } return `<button class="btn alt" data-act="vid-open" data-id="${a.id}">📺 Watch the video lesson${m ? ` (about ${m} min)` : ''}</button>`; };
 
@@ -5162,6 +5165,61 @@ NOTES.push(['gp', /.*/, { hook: 'What is one problem in your neighbourhood or th
 CT.gp = [null, [['Explain why it is important to check where information comes from.', 'check/trust/reliab/source;true/fact/wrong/fake/accurate', 'We should check sources because not all information is true or reliable.'], ['Describe one way to save water at home.', 'water;tap/shower/leak/reuse/rain', 'We can save water by turning off the tap while brushing our teeth.'], ['Explain what a perspective is.', 'perspective/view/point of view;think/feel/see/different', 'A perspective is the way a person sees or thinks about an issue.'], ['Describe what makes a good team member.', 'team;listen/share/help/respect/role/turn', 'A good team member listens to others and does their share of the work.'], ['Explain one cause and one consequence of climate change.', 'cause/because/fossil/coal/carbon/gas;consequence/effect/drought/flood/sea/warm/heat', 'Burning fossil fuels causes climate change, which leads to more droughts.'], ['Explain why children have rights.', 'right;child/children;safe/school/education/health/protect', 'Children have rights so that they are safe, healthy and able to go to school.']]];
 CT.sci = [null, [['Explain why a fair test changes only one thing.', 'one/single/only;change/variable;fair/know/tell/cause', 'In a fair test we change only one thing so we know what caused the result.'], ['Describe how a food chain shows energy moving.', 'food chain/chain;energy/eat;plant/sun/producer', 'A food chain shows energy moving from plants to the animals that eat them.'], ['Explain how we see objects that are not light sources.', 'light;reflect/bounce;eye', 'Light reflects off objects into our eyes.'], ['Explain the difference between melting and dissolving.', 'melt;dissolv;heat/temperature/liquid/water/solvent', 'Melting is caused by heat, but dissolving is when a solid mixes into a liquid.'], ['Describe what causes day and night.', 'earth;spin/rotat/turn;sun/face/light', 'Day and night happen because the Earth spins, so each side faces the Sun in turn.'], ['Explain why muscles work in pairs.', 'muscle;pull/contract;pair/two/opposite', 'Muscles can only pull, so they work in pairs to move bones both ways.']]];
 NOTES_CACHE && Object.keys(NOTES_CACHE).forEach(k => delete NOTES_CACHE[k]);
+
+/* ---------- v21: read-aloud voice (recorded Emily voice where available, device voice otherwise) ---------- */
+const vhash = t => { let h = 2166136261; t = String(t).trim(); for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return ('0000000' + h.toString(16)).slice(-8); };
+let VOX = {}, voxCtx = null, voxSrc = null, voxSeq = 0;
+const voxBufs = {};
+try { fetch('voice/index.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : {}).then(j => { VOX = j || {}; }).catch(() => {}); } catch (e) { }
+const voxOn = () => S.voice !== false;
+const voxSplit = t => sentencesOf(plainT(t)).map(x => x.trim()).filter(Boolean);
+const voxCtxGet = () => { try { if (!voxCtx) voxCtx = new (window.AudioContext || window.webkitAudioContext)(); if (voxCtx.state === 'suspended') voxCtx.resume(); return voxCtx; } catch (e) { return null; } };
+const voxUnlock = () => { const c = voxCtxGet(); if (!c) return; try { const b = c.createBuffer(1, 1, 22050), s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(0); } catch (e) { } };
+document.addEventListener('touchend', voxUnlock, true); document.addEventListener('click', voxUnlock, true);
+const voxLoad = (h, cb) => { const b = voxBufs[h]; if (b && b.buf) return cb(b.buf); if (b) return b.cbs.push(cb);
+  const e = voxBufs[h] = { buf: null, cbs: [cb] }, done = x => { e.buf = x; if (!x) delete voxBufs[h]; const l = e.cbs; e.cbs = []; l.forEach(f => f(x)); }, c = voxCtxGet();
+  if (!c) return done(null);
+  fetch('voice/' + h + '.mp3').then(r => { if (!r.ok) throw 0; return r.arrayBuffer(); }).then(a => c.decodeAudioData(a, x => done(x), () => done(null))).catch(() => done(null)); };
+const voxPrefetch = lines => { for (const l of lines) for (const s of voxSplit(l)) { const h = vhash(s); if (VOX[h] && !voxBufs[h]) voxLoad(h, () => {}); } };
+const voxEnVoice = () => { const f = (re, nm) => voices.find(v => re.test(v.lang || '') && (!nm || nm.test(v.name))); return f(/en[-_]IE/i) || f(/en[-_]GB/i, /female|moira|serena|kate|martha|libby|sonia|maisie|stephanie|susan|hazel/i) || f(/en[-_](GB|ZA|AU)/i) || voiceFor('en'); };
+function hush() { voxSeq++; try { if (voxSrc) voxSrc.stop(); } catch (e) { } voxSrc = null; try { speechSynthesis.cancel(); } catch (e) { } }
+function voxTTS(text, lang, done) {
+  if (!('speechSynthesis' in window)) return done();
+  let fin = false; const end = () => { if (!fin) { fin = true; done(); } };
+  try { const u = new SpeechSynthesisUtterance(text), v = lang === 'en' ? voxEnVoice() : voiceFor(lang); if (v) { u.voice = v; u.lang = v.lang; } else u.lang = { af: 'af-ZA', es: 'es-ES', fr: 'fr-FR', zh: 'zh-CN', pt: 'pt-PT' }[lang] || 'en-GB';
+    u.rate = lang === 'en' ? 0.95 : 0.8; u.onend = end; u.onerror = end; speechSynthesis.speak(u); setTimeout(end, 1500 + text.length * 120); } catch (e) { end(); }
+}
+function voxOne(text, lang, done) {
+  const h = vhash(text);
+  if (lang !== 'en' || !VOX[h]) return voxTTS(text, lang, done);
+  const my = voxSeq;
+  voxLoad(h, buf => { if (my !== voxSeq) return; const c = voxCtxGet(); if (!buf || !c) return voxTTS(text, lang, done);
+    try { const s = c.createBufferSource(); s.buffer = buf; s.connect(c.destination); s.onended = () => { if (voxSrc === s) voxSrc = null; done(); }; s.start(0); voxSrc = s; } catch (e) { voxTTS(text, lang, done); } });
+}
+/* voxSay('text') or voxSay([[text, lang], ...]); calls done() when finished (or straight away when voice is off) */
+function voxSay(parts, done) {
+  hush(); const my = voxSeq; done = done || (() => {});
+  if (!voxOn() || !parts) return done();
+  if (typeof parts === 'string') parts = [[parts, 'en']];
+  const q = []; for (const [t, l] of parts) { if (!t) continue; if ((l || 'en') === 'en') voxSplit(t).forEach(s => q.push([s, 'en'])); else q.push([String(t), l]); }
+  voxPrefetch(q.filter(x => x[1] === 'en').map(x => x[0]));
+  const next = i => { if (my !== voxSeq) return; if (i >= q.length) return done(); voxOne(q[i][0], q[i][1], () => { if (my === voxSeq) setTimeout(() => next(i + 1), 220); }); };
+  next(0);
+}
+const voxApplyClass = () => document.body.classList.toggle('novoice', !voxOn());
+voxApplyClass();
+EXT['vox-toggle'] = () => { S.voice = !voxOn(); save(); voxApplyClass(); if (!voxOn()) hush(); else voxSay('Read aloud is on.'); render(); };
+const voxBtn = () => `<button class="back" data-act="vox-toggle" aria-label="${voxOn() ? 'Turn read aloud off' : 'Turn read aloud on'}" title="Read aloud" style="margin-left:auto;font-size:20px">${voxOn() ? '🔊' : '🔇'}</button>`;
+/* lines the app reads aloud for a lesson (used to build the recording list) */
+const exLines = ex => ['Let\'s work through an example together. ' + plainT(ex.q)].concat(ex.s.map((x, j) => `Step ${j + 1}: ${plainT(x)}`), [`So the answer is ${plainT(ex.a)}.`]);
+const voxLinesFor = a => { const out = [], T = TEACH[a.id];
+  try { for (const x of videoScript(a)) if (!/^(👀|✋)/.test(x.title)) out.push(...x.lines); } catch (e) { }
+  if (T && T.pages) for (const pg of T.pages) { out.push(pg.t); if (pg.c) out.push(pg.c.split('|')[0]); if (pg.ex) out.push(...exLines(pg.ex)); if (pg.ce) out.push(pg.ce); }
+  if (T) { if (T.alt) out.push(T.alt); if (T.xt) out.push(T.xt); if (T.mistake) out.push(T.mistake); }
+  return out; };
+const VOX_FIXED = ['Read aloud is on.', 'Nearly! Try again.', 'Brilliant! You got it.', 'Good thinking! Now you know how.', 'Here is the answer. Look carefully.', 'Now it is your turn!', 'That one was tricky. Let\'s slow down and look at the idea differently.', 'Correct!', 'Not quite. Read the explanation above again, then try another answer.', 'Use the buttons to change the picture and watch what happens.'];
+const voxAllLines = filter => { const set = {}; const add = t => voxSplit(t).forEach(s => { set[vhash(s)] = s; });
+  VOX_FIXED.forEach(add); for (const a of ACTS) if (filter(a)) voxLinesFor(a).forEach(add); return set; };
 
 if (S.active && P()) screen = 'home';
 render();

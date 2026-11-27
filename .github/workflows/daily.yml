@@ -39,11 +39,21 @@ jobs:
         run: |
           pip install -q edge-tts
           python3 tools/make_voice.py
+      - name: Record the learning app's voice (only new lines, up to 40 minutes per run)
+        continue-on-error: true
+        timeout-minutes: 50
+        env:
+          AZURE_SPEECH_KEY: ${{ secrets.AZURE_SPEECH_KEY }}
+          AZURE_SPEECH_REGION: ${{ secrets.AZURE_SPEECH_REGION }}
+          LEARN_VOICE_MINUTES: "40"
+        run: |
+          pip install -q edge-tts
+          python3 tools/make_learn_voice.py
       - name: Save it in the repository
         run: |
           git config user.name "Curiosity Cove robot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add daily.json junior/voice
+          git add daily.json junior/voice learn/voice
           git diff --cached --quiet || (git commit -m "Daily challenge and voice $(TZ=Africa/Johannesburg date +%F)" && git push)
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
