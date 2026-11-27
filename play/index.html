@@ -1,0 +1,1786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Robot Lab Breakout</title>
+<meta name="description" content="Robot Lab Breakout: a free code-breaking escape game for kids aged 9 to 12. 104 levels, 37 kinds of coding puzzle and a new daily challenge. No ads, no sign-up.">
+<meta name="theme-color" content="#ff7a1a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Robot Lab">
+<meta property="og:title" content="Robot Lab Breakout">
+<meta property="og:description" content="Robot Lab Breakout: a free code-breaking escape game for kids aged 9 to 12. 104 levels, 37 kinds of coding puzzle and a new daily challenge. No ads, no sign-up.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://firewolf84-cbre.github.io/curiositycove-site/play/">
+<meta property="og:image" content="https://firewolf84-cbre.github.io/curiositycove-site/play/icons/og.png">
+
+
+<style>
+@font-face{font-family:"Baloo 2";font-weight:600 700;font-style:normal;font-display:swap;src:url("fonts/Baloo2-700.ttf") format("truetype")}
+@font-face{font-family:"Baloo 2";font-weight:800;font-style:normal;font-display:swap;src:url("fonts/Baloo2-800.ttf") format("truetype")}
+@font-face{font-family:"Nunito";font-weight:400;font-style:normal;font-display:swap;src:url("fonts/Nunito-400.ttf") format("truetype")}
+@font-face{font-family:"Nunito";font-weight:700;font-style:normal;font-display:swap;src:url("fonts/Nunito-700.ttf") format("truetype")}
+@font-face{font-family:"Nunito";font-weight:800;font-style:normal;font-display:swap;src:url("fonts/Nunito-800.ttf") format("truetype")}
+.top{padding-top:max(16px,env(safe-area-inset-top))}
+
+/* VOICE occasion: a kids' party game, bright and confident, never babyish
+   IDEA the control panel of BOLT's robot lab, with chunky lock panels like toy hardware and a level map like a game cartridge
+   PICTURE BOLT himself, large, whose chest lights switch on as each lock opens and whose screen shows the letters collected
+   COLOUR orange band (BOLT), cobalt panels, lime for unlocked, white ground; aubergine at night; each level tints BOLT's antenna
+   TYPE Baloo 2 for titles and codes + Nunito for text
+   LAYOUT laptop: level map, then title, timer and controls left with BOLT right; lock panels 3-up below; phone: map, title, BOLT, timer, one column */
+:root{color-scheme:light dark;--bg:#ffffff;--ink:#1d1a2e;--soft:#5b5672;--band:#ff7a1a;--bandink:#1d1a2e;--panel:#f2f5ff;--edge:#2f5bea;--cobalt:#2f5bea;--lime:#7ccf3f;--limebg:#eefbe4;--red:#e5383b;--card:#ffffff;--good:#2c7a12;--warmbg:#fff3e8}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#161226;--ink:#f4f1ff;--soft:#bdb6d9;--band:#c4520c;--panel:#221c3a;--edge:#7c9bff;--limebg:#1f3317;--card:#1c1731;--good:#9be36a;--warmbg:#2a1c14}}
+:root[data-theme=dark]{--bg:#161226;--ink:#f4f1ff;--soft:#bdb6d9;--band:#c4520c;--panel:#221c3a;--edge:#7c9bff;--limebg:#1f3317;--card:#1c1731;--good:#9be36a;--warmbg:#2a1c14}
+:root[data-theme=light]{color-scheme:light}
+:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 Nunito,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3,.code{font-family:"Baloo 2",Nunito,system-ui,sans-serif}
+.band{padding-block:clamp(24px,4vw,48px);padding-left:max(5vw,16px);padding-right:max(5vw,16px)}
+.top{background:var(--band);color:var(--bandink);padding-top:16px}
+.wrap{max-width:1240px;margin:0 auto}
+.map{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:8px}
+.past{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:clamp(16px,3vw,24px);font-size:14px;font-weight:700}
+.past:empty{margin-bottom:clamp(8px,2vw,16px)}
+.past .chip{min-height:36px;padding:0 12px;font-size:14px;box-shadow:none;background:rgba(255,255,255,.55)}
+.past .chip.cur{background:#fff;box-shadow:0 2px 0 #1d1a2e}
+.lv.daily{background:#ffe9f4}
+.lv.daily .n{background:#ff5ca8;color:#1d1a2e}
+.lv{display:flex;align-items:center;gap:10px;text-align:left;padding:8px 12px;min-height:56px;border-radius:14px;background:rgba(255,255,255,.55);box-shadow:none;border:2px solid #1d1a2e}
+.lv .n{flex:none;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#1d1a2e;color:#fff;font:800 17px/1 "Baloo 2",sans-serif}
+.lv span{display:block;font-size:13px;font-weight:700;line-height:1.2}
+.lv b{display:block;font:800 16px/1.15 "Baloo 2",sans-serif}
+.lv.cur{background:#fff;box-shadow:0 3px 0 #1d1a2e}
+.lv.won .n{background:var(--lime);color:#1d1a2e}
+.lv[disabled]{opacity:.55;cursor:not-allowed;box-shadow:none}
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:clamp(16px,4vw,48px);align-items:center}
+.tag{font-weight:800;font-size:15px;margin:0 0 2px}
+h1{font-size:clamp(36px,5vw,52px);line-height:1.05;letter-spacing:-.02em;margin:0 0 10px;text-wrap:balance}
+.story{font-size:17px;max-width:60ch;margin:0 0 18px}
+.clock{display:flex;flex-wrap:wrap;align-items:center;gap:12px;background:#fff;border-radius:18px;padding:12px 14px;box-shadow:0 4px 0 #1d1a2e;max-width:520px;color:#1d1a2e}
+.time{font:800 clamp(34px,5vw,44px)/1 "Baloo 2",sans-serif;font-variant-numeric:tabular-nums;min-width:4.2ch;white-space:nowrap}
+.time.over{color:var(--red)}
+.clock small{display:block;color:#5b5672;font-size:13px}
+button{font:800 16px/1 Nunito,sans-serif;min-height:44px;padding:0 18px;border-radius:12px;border:2px solid #1d1a2e;background:#fff;color:#1d1a2e;cursor:pointer;box-shadow:0 3px 0 #1d1a2e}
+button:active{transform:translateY(2px);box-shadow:0 1px 0 #1d1a2e}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--cobalt);outline-offset:2px}
+button.go{background:var(--cobalt);color:#fff}
+button.quiet{box-shadow:none;border-color:transparent;background:transparent;color:inherit;text-decoration:underline;padding:0 8px}
+.bolt{width:100%;max-width:440px;justify-self:center;aspect-ratio:1/1}
+.bolt svg{width:100%;height:100%;display:block}
+.tray{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.tile{width:44px;height:52px;border-radius:10px;border:2px dashed #1d1a2e;display:grid;place-items:center;font:800 26px/1 "Baloo 2",sans-serif;background:rgba(255,255,255,.35)}
+.tile.on{border-style:solid;background:#fff}
+h2{font-size:32px;line-height:1.1;margin:0 0 6px}
+.lede{color:var(--soft);margin:0 0 20px}
+.locks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}
+.lock{background:var(--card);border:3px solid var(--edge);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.lock.done{border-color:var(--lime);background:var(--limebg)}
+.lhead{display:flex;gap:12px;align-items:center}
+.num{flex:none;width:44px;height:44px;border-radius:50%;background:var(--cobalt);color:#fff;display:grid;place-items:center;font:800 22px/1 "Baloo 2",sans-serif}
+.done .num{background:var(--lime);color:#1d1a2e}
+.lock h3{font-size:21px;line-height:1.1;margin:0}
+.skill{font-size:13px;color:var(--soft)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+input[type=text]{flex:1 1 140px;font:800 20px/1 "Baloo 2",sans-serif;letter-spacing:.08em;text-transform:uppercase;min-height:48px;padding:0 12px;border:2px solid var(--edge);border-radius:12px;background:var(--bg);color:var(--ink)}
+.msg{min-height:1.5em;font-weight:700;font-size:15px}
+.msg.bad{color:var(--red)}
+.msg.good{color:var(--good)}
+.hint{background:var(--panel);border-radius:12px;padding:10px 12px;font-size:15px}
+.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+details.puz summary{cursor:pointer;font-weight:800;color:var(--edge);min-height:32px;display:flex;align-items:center}
+.pz{background:var(--panel);border-radius:12px;padding:12px;margin-top:6px;font-size:15px}
+.pz p{margin:0 0 10px}
+.bin{display:grid;gap:6px;align-items:center;justify-content:start}
+.bin b{text-align:center;font:800 15px "Baloo 2",sans-serif}
+.dot{width:28px;height:28px;border-radius:50%;border:3px solid var(--ink);margin:auto}
+.dot.on{background:#ffd23f;box-shadow:0 0 10px #ffd23f}
+.grid5{display:grid;grid-template-columns:repeat(5,40px);gap:4px;margin-bottom:10px}
+.grid5 span{height:40px;display:grid;place-items:center;border:2px solid var(--edge);border-radius:8px;font:800 20px "Baloo 2",sans-serif;background:var(--card)}
+.grid5 span.st{background:#ffd23f;color:#1d1a2e;font-size:22px}
+.prog{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+.prog li{background:var(--cobalt);color:#fff;border-radius:8px;padding:4px 10px;font-weight:800;white-space:nowrap}
+.prog li.turn{background:#ff7a1a;color:#1d1a2e}
+.cipher{font:800 22px/1.4 "Baloo 2",sans-serif;letter-spacing:.12em;overflow-wrap:anywhere}
+.strip{display:flex;overflow-x:auto;gap:2px;padding-bottom:4px}
+.strip span{flex:none;width:24px;text-align:center;font:800 15px "Baloo 2",sans-serif;border-bottom:2px solid var(--edge)}
+.strip2{overflow-x:auto}
+.strip2 table{border-collapse:collapse}
+.strip2 td{width:24px;text-align:center;font:800 15px "Baloo 2",sans-serif;padding:2px 0;border:1px solid rgba(124,155,255,.4)}
+.strip2 tr:first-child td{background:rgba(255,210,63,.35)}
+pre.code{margin:0;font-size:16px;line-height:1.45;white-space:pre;overflow-x:auto}
+.clues{margin:0;padding-left:20px}
+.pix{display:grid;gap:3px;margin-top:8px}
+.pix button{min-height:34px;height:34px;padding:0;border-radius:6px;border:2px solid var(--edge);box-shadow:none;background:var(--card);color:var(--soft);font:700 12px Nunito,sans-serif}
+.pix button.lit{background:var(--ink);color:var(--bg)}
+.axis{font:800 13px "Baloo 2",sans-serif;color:var(--soft);display:grid;place-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chips span{min-width:40px;height:40px;padding:0 8px;border-radius:10px;background:var(--card);border:2px solid var(--edge);display:grid;place-items:center;font:800 20px "Baloo 2",sans-serif}
+.gates{display:grid;grid-template-columns:repeat(3,auto);gap:6px 12px;justify-content:start;margin-bottom:10px}
+.gates b{font:800 18px "Baloo 2",sans-serif}
+.graph{width:100%;max-width:380px;display:block}
+.graph text{font:800 13px Nunito,sans-serif;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:4px}
+.final{margin-top:20px;border:3px dashed var(--band);border-radius:18px;padding:18px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:center}
+.final.open{border-style:solid;background:var(--warmbg)}
+.final[aria-disabled=true] input,.final[aria-disabled=true] button{opacity:.5;pointer-events:none}
+.grown{margin-top:28px;border-top:2px solid var(--panel);padding-top:16px}
+.grown summary{cursor:pointer;font-weight:800}
+.ans{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;margin-top:10px}
+.ans b{font-family:"Baloo 2",sans-serif}
+.ans h4{grid-column:1/-1;margin:10px 0 0;font:800 17px "Baloo 2",sans-serif}
+.win{position:fixed;inset:0;background:rgba(22,18,38,.72);display:none;place-items:center;padding:16px;z-index:5}
+.win.show{display:grid}
+.card{background:var(--bg);border:4px solid var(--lime);border-radius:24px;padding:28px;max-width:480px;text-align:center}
+.card .big{font:800 clamp(36px,7vw,56px)/1.05 "Baloo 2",sans-serif;color:var(--band)}
+.card .row{justify-content:center}
+footer{color:var(--soft);font-size:13px}
+@media(max-width:900px){.locks{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.hero{grid-template-columns:minmax(0,1fr)}.bolt{max-width:280px;order:2}.hero>div:first-child{display:contents}.hero .tag{order:0}.hero h1{order:1}.hero .story{order:3}.hero .clock{order:4}.hero .tray{order:5}.locks{grid-template-columns:minmax(0,1fr)}.final{grid-template-columns:minmax(0,1fr)}.lv span{display:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* v4: nav, map, achievements, leaderboard, new puzzle kinds */
+.topnav{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:12px}
+.topnav button{min-height:40px;padding:0 14px;font-size:15px;box-shadow:none;background:rgba(255,255,255,.55)}
+.topnav button[aria-current=true]{background:#fff;box-shadow:0 3px 0 #1d1a2e}
+.starcount{margin-left:auto;font:800 18px/1 "Baloo 2",sans-serif;background:#fff;color:#1d1a2e;border:2px solid #1d1a2e;border-radius:12px;padding:8px 12px;white-space:nowrap}
+.wrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:10px}
+.wrow .wname{font:800 17px/1.1 "Baloo 2",sans-serif;margin-right:6px}
+.tl{min-width:52px;min-height:52px;padding:4px 6px;border-radius:12px;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:none;background:rgba(255,255,255,.6)}
+.tl b{font:800 18px/1 "Baloo 2",sans-serif}
+.tl i{font-style:normal;font-size:11px;letter-spacing:-1px;color:#b07800;min-height:12px}
+.tl.won{background:#eefbe4}
+.tl.cur{background:#fff;box-shadow:0 3px 0 #1d1a2e}
+.tl[disabled]{opacity:.5;cursor:not-allowed}
+.tl.daily{background:#ffe9f4}
+.vh h1{margin-bottom:4px}
+.worlds{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:16px}
+.wcard{border:3px solid var(--ink);border-radius:18px;overflow:hidden;background:var(--card)}
+.whead{display:flex;gap:12px;align-items:center;padding:12px 14px;color:#fff}
+.whead h3{margin:0;font-size:22px;line-height:1.1}
+.whead p{margin:2px 0 0;font-size:14px;opacity:.95}
+.whead .wi{font-size:34px;line-height:1}
+.whead .wp{margin-left:auto;font:800 15px/1.2 "Baloo 2",sans-serif;text-align:right;white-space:nowrap}
+.wcard .tiles{display:flex;flex-wrap:wrap;gap:6px;padding:12px}
+.wcard .tl{border-color:var(--ink);color:#1d1a2e}
+.wcard.locked .whead{filter:grayscale(.7)}
+.wnote{padding:0 14px 12px;margin:0;color:var(--soft);font-size:14px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:24px}
+.stat{background:var(--panel);border-radius:16px;padding:12px 14px}
+.stat b{display:block;font:800 30px/1.1 "Baloo 2",sans-serif}
+.stat span{font-size:14px;color:var(--soft)}
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:28px}
+.bdg{border:2px solid var(--edge);border-radius:16px;padding:12px;display:grid;grid-template-columns:44px minmax(0,1fr);gap:4px 10px;align-items:center;background:var(--card)}
+.bdg .ic{font-size:34px;line-height:1;grid-row:span 2;text-align:center}
+.bdg b{font:800 16px/1.15 "Baloo 2",sans-serif}
+.bdg small{font-size:13px;color:var(--soft);line-height:1.3}
+.bdg .bar{grid-column:1/-1;height:8px;border-radius:4px;background:var(--panel);overflow:hidden}
+.bdg .bar i{display:block;height:100%;background:var(--lime)}
+.bdg.off{border-style:dashed;opacity:.75}
+.bdg.off .ic{filter:grayscale(1);opacity:.55}
+.bdg.on{border-color:var(--lime);background:var(--limebg)}
+table.rec{border-collapse:collapse;width:100%;max-width:760px;margin-bottom:24px;font-size:15px}
+table.rec th,table.rec td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--panel)}
+table.rec th{font-size:13px;color:var(--soft)}
+table.rec td.n{font:800 17px "Baloo 2",sans-serif;font-variant-numeric:tabular-nums}
+.chiprow{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.chiprow button{min-height:36px;padding:0 12px;font-size:14px;box-shadow:none}
+.chiprow button[aria-pressed=true]{background:var(--cobalt);color:#fff}
+select{font:700 16px Nunito,sans-serif;min-height:44px;border:2px solid var(--edge);border-radius:12px;padding:0 10px;background:var(--bg);color:var(--ink);max-width:100%}
+.note{font-size:14px;color:var(--soft)}
+.mini{margin-top:14px;background:var(--panel);border-radius:14px;padding:10px 14px;font-size:15px}
+.mini b{font-family:"Baloo 2",sans-serif}
+.stars{font-size:34px;letter-spacing:4px;color:#f2b600;margin:4px 0}
+.newb{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0}
+.newb span{background:var(--limebg);border:2px solid var(--lime);border-radius:12px;padding:4px 10px;font-weight:800;font-size:14px}
+.lbform{background:var(--panel);border-radius:14px;padding:10px;margin:10px 0;text-align:left}
+.lbform input[type=text]{text-transform:none;letter-spacing:0;font-size:18px}
+.card{max-height:calc(100vh - 32px);overflow-y:auto}
+/* new puzzle kinds */
+.maze{display:grid;gap:0;margin:4px 0 10px;max-width:100%}
+.maze button,.mz{height:40px;min-height:40px;padding:0;border-radius:0;box-shadow:none;background:var(--card);color:var(--ink);font:800 18px "Baloo 2",sans-serif}
+.mz.lit{background:#ffd23f;color:#1d1a2e}
+.mm{display:grid;gap:6px;margin-bottom:6px}
+.mmrow{display:flex;gap:6px;align-items:center}
+.peg{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--card);border:2px solid var(--edge);font:800 20px "Baloo 2",sans-serif}
+.peg.q{border-style:dashed;color:var(--soft)}
+.fb{margin-left:8px;font-size:22px;letter-spacing:3px;min-width:5ch}
+.nono{display:grid;gap:3px;align-items:end;justify-content:start}
+.ncl{font:800 14px/1.15 "Baloo 2",sans-serif;text-align:center;color:var(--edge)}
+.nrl{font:800 14px "Baloo 2",sans-serif;color:var(--edge);text-align:right;padding-right:6px;align-self:center;white-space:nowrap}
+.nc{height:34px;min-height:34px;padding:0;border-radius:4px;border:2px solid var(--edge);box-shadow:none;background:var(--card)}
+.nc.lit{background:var(--ink)}
+.sudo{display:grid;grid-template-columns:repeat(4,48px);gap:0;border:3px solid var(--ink);width:max-content;margin-bottom:6px}
+.su{height:48px;min-height:48px;display:grid;place-items:center;border:1px solid rgba(128,128,150,.45);border-radius:0;box-shadow:none;padding:0;background:var(--card);color:var(--cobalt);font:800 22px "Baloo 2",sans-serif;position:relative}
+.su.given{color:var(--ink)}
+.su.br{border-right:3px solid var(--ink)}
+.su.bb{border-bottom:3px solid var(--ink)}
+.su.star::after{content:"★";position:absolute;top:1px;right:3px;font-size:12px;color:#e09b00}
+.morse{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:24px;letter-spacing:.06em}
+.morse span{background:var(--card);border:2px solid var(--edge);border-radius:10px;padding:2px 10px}
+.mkey,.pkey{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:4px;margin-top:10px;font-size:14px}
+.mkey span{white-space:nowrap}
+.pkey{grid-template-columns:repeat(auto-fill,minmax(52px,1fr))}
+.pkey span{display:flex;align-items:center;gap:4px;font-size:15px}
+.pig{width:26px;height:26px;color:var(--ink);flex:none}
+.pig.big{width:52px;height:52px}
+.pigs{display:flex;flex-wrap:wrap;gap:10px;background:var(--card);border-radius:12px;padding:8px;width:max-content;max-width:100%}
+.shp{width:30px;height:30px;vertical-align:middle}
+.eqs{display:grid;gap:8px;margin-bottom:10px}
+.eqs div{display:flex;align-items:center;gap:6px;font:800 22px "Baloo 2",sans-serif}
+.eqs.ask{grid-template-columns:repeat(auto-fit,minmax(90px,max-content));gap:8px 18px}
+.pyr{display:grid;gap:4px;justify-items:center;margin-bottom:6px}
+.pyr div{display:flex;gap:4px}
+.pyr span{width:52px;height:38px;border:2px solid var(--ink);border-radius:6px;display:grid;place-items:center;background:#ffe2c4;color:#1d1a2e;font:800 18px "Baloo 2",sans-serif}
+.pyr span:empty{background:var(--card)}
+.pyr span.star{background:#ffd23f}
+.flow{width:100%;max-width:420px;display:block}
+.flow text{font:800 13px Nunito,sans-serif;fill:#1d1a2e}
+.flow text.fl{fill:var(--ink);font-size:12px}
+.par{display:grid;grid-template-columns:24px repeat(6,40px);gap:4px;align-items:center}
+.par b{text-align:center;font:800 15px "Baloo 2",sans-serif;color:var(--soft)}
+.par span{height:40px;border-radius:6px;border:2px solid var(--ink);background:#fffdf5}
+.par span.dk{background:#2b2547}
+.chips .lbl{min-width:auto;border:none;background:none;font-size:14px;color:var(--soft)}
+.chips span.q{border-style:dashed;color:var(--red)}
+.chips.wts span{font-size:15px;border-style:dotted}
+.rle{margin:0 0 8px;padding-left:22px;font:800 17px/1.5 "Baloo 2",sans-serif}
+.ops li{font-size:15px}
+.wsg{display:grid;gap:3px;margin-top:6px}
+.ws{height:38px;min-height:38px;padding:0;border-radius:6px;box-shadow:none;border:2px solid var(--edge);background:var(--card);color:var(--ink);font:800 19px "Baloo 2",sans-serif}
+.ws.lit{background:#ffd23f;color:#1d1a2e}
+.clkrow{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.clk{width:150px;height:150px;flex:none}
+.clk text{font:800 16px "Baloo 2",sans-serif;fill:var(--ink)}
+.graph text.big{font:800 18px "Baloo 2",sans-serif}
+.chips.cd{flex-wrap:nowrap;gap:4px;align-items:center}
+.chips.cd span{min-width:28px;height:34px;padding:0 4px;font-size:17px;border-radius:8px}
+.chips.cd .lbl{min-width:64px;justify-content:start;display:flex;font-size:13px}
+.chips.cd.wts span{font-size:13px}
+@media(min-width:601px){.lock.wide{grid-column:span 2}}
+.wcard .tiles{display:grid;grid-template-columns:repeat(10,minmax(0,1fr))}.wcard .tiles .tl{min-width:0}
+@media(max-width:560px){.wcard .tiles{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.lab .tiles{grid-template-columns:repeat(auto-fill,minmax(52px,1fr))}
+.whead>div{flex:1}.whead .wp{flex:none}
+@media(max-width:560px){.whead p{display:none}.whead h3{font-size:19px}.whead .wi{font-size:28px}}
+/* ---------- v5 juice ---------- */
+.top{position:relative;overflow:hidden;background-image:radial-gradient(rgba(255,255,255,.16) 2px,transparent 2.5px);background-size:22px 22px;transition:background-color .4s}
+.top .wrap{position:relative;z-index:1}
+.top .lv,.top .tl,.top .topnav button,.top .chip,.top .tile,.top .lv span{color:#1d1a2e}
+.top .quiet{color:inherit}
+.deco{position:absolute;inset:0;pointer-events:none;z-index:0}
+.deco span{position:absolute;font-size:44px;opacity:.22;animation:drift 14s ease-in-out infinite alternate}
+@keyframes drift{from{transform:translate(0,0) rotate(-8deg)}to{transform:translate(18px,-26px) rotate(10deg)}}
+.bolt{position:relative}
+.bolt svg{overflow:visible}
+#boltHead,#armL,#armR{transform-box:fill-box}
+.bolt svg{animation:float 3.2s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-8px)}}
+#ant{animation:glow 1.6s ease-in-out infinite}
+@keyframes glow{50%{filter:brightness(1.6) drop-shadow(0 0 8px currentColor)}}
+.bolt.hop svg{animation:hop .6s cubic-bezier(.3,1.6,.5,1)}
+@keyframes hop{30%{transform:translateY(-34px) scale(1.04,.96)}60%{transform:translateY(0) scale(.96,1.04)}}
+.bolt.no #boltHead{transform-origin:50% 100%;animation:no .6s ease-in-out}
+@keyframes no{20%{transform:rotate(-10deg)}45%{transform:rotate(9deg)}70%{transform:rotate(-6deg)}}
+.bolt.dance svg{animation:dance .7s ease-in-out infinite}
+.bolt.dance #armL{transform-origin:80% 5%;animation:waveL .35s ease-in-out infinite alternate}
+.bolt.dance #armR{transform-origin:20% 5%;animation:waveR .35s ease-in-out infinite alternate}
+@keyframes dance{25%{transform:rotate(-6deg) translateY(-10px)}75%{transform:rotate(6deg) translateY(-10px)}}
+@keyframes waveL{to{transform:rotate(-55deg)}}
+@keyframes waveR{to{transform:rotate(55deg)}}
+.say{position:absolute;left:50%;top:-6px;transform:translate(-50%,-100%) scale(.6);opacity:0;background:#fff;color:#1d1a2e;border:3px solid #1d1a2e;border-radius:18px;padding:8px 14px;font:800 17px/1.2 "Baloo 2",sans-serif;white-space:nowrap;box-shadow:0 4px 0 #1d1a2e;transition:opacity .2s,transform .25s cubic-bezier(.3,1.6,.5,1);z-index:3;pointer-events:none;max-width:90vw}
+.say::after{content:"";position:absolute;left:50%;bottom:-12px;width:18px;height:18px;background:#fff;border-right:3px solid #1d1a2e;border-bottom:3px solid #1d1a2e;transform:translateX(-50%) rotate(45deg)}
+.say.show{opacity:1;transform:translate(-50%,-100%) scale(1)}
+@media(max-width:600px){.say{top:8px;font-size:15px}}
+.count{position:fixed;inset:0;z-index:6;display:grid;place-items:center;background:rgba(22,18,38,.55);cursor:pointer}
+.count[hidden]{display:none}
+.count span{font:800 min(40vw,220px)/1 "Baloo 2",sans-serif;color:#ffd23f;-webkit-text-stroke:6px #1d1a2e;paint-order:stroke;animation:countpop .6s cubic-bezier(.3,1.6,.5,1)}
+@keyframes countpop{from{transform:scale(2.4);opacity:0}to{transform:scale(1);opacity:1}}
+.fly{position:fixed;z-index:7;width:48px;height:56px;border-radius:12px;background:#ffd23f;border:3px solid #1d1a2e;display:grid;place-items:center;font:800 30px/1 "Baloo 2",sans-serif;color:#1d1a2e;pointer-events:none;box-shadow:0 4px 0 #1d1a2e}
+.tile{transition:transform .2s}
+.tile.on{background:#fff;color:#1d1a2e}
+.tile.pop{animation:tilepop .4s cubic-bezier(.3,1.6,.5,1)}
+@keyframes tilepop{50%{transform:scale(1.35) rotate(-6deg)}}
+.floattxt{position:fixed;z-index:7;transform:translateX(-50%);font:800 28px/1 "Baloo 2",sans-serif;color:#ff5ca8;-webkit-text-stroke:2px #1d1a2e;paint-order:stroke;pointer-events:none;animation:rise 1.2s ease-out forwards;white-space:nowrap}
+@keyframes rise{0%{transform:translate(-50%,10px) scale(.6);opacity:0}20%{transform:translate(-50%,0) scale(1.15);opacity:1}100%{transform:translate(-50%,-70px) scale(1);opacity:0}}
+.lock{transition:transform .15s}
+.lock.fresh{animation:cardpop .55s cubic-bezier(.3,1.6,.5,1)}
+@keyframes cardpop{0%{transform:scale(.9)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
+.lock.fresh .num{animation:spin .6s ease-out}
+@keyframes spin{from{transform:rotate(-360deg) scale(.4)}}
+input.okflash{animation:okflash .5s}
+@keyframes okflash{50%{box-shadow:0 0 0 6px var(--lime)}}
+.time.warn{animation:warn 1s ease-in-out infinite;color:#e5383b}
+@keyframes warn{50%{transform:scale(1.08)}}
+button:not([disabled]):hover{filter:brightness(1.05)}
+button.go:not([disabled]){background-image:linear-gradient(180deg,rgba(255,255,255,.22),transparent 60%)}
+#startBtn{animation:nudge 2.4s ease-in-out infinite}
+@keyframes nudge{0%,80%,100%{transform:none}86%{transform:rotate(-3deg) scale(1.05)}92%{transform:rotate(3deg) scale(1.05)}}
+.tl{animation:tilein .45s cubic-bezier(.3,1.6,.5,1) both;animation-delay:calc(var(--i,0) * 25ms)}
+@keyframes tilein{from{transform:scale(.4);opacity:0}}
+.tl.next{background:#ffd23f!important;box-shadow:0 0 0 3px #fff,0 0 0 6px #1d1a2e;animation:tilein .45s both,pulse 1.4s ease-in-out .6s infinite}
+.tl.next b::after{content:" ▶";font-size:12px}
+@keyframes pulse{50%{transform:scale(1.12)}}
+.whead{background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.12) 0 12px,transparent 12px 24px);background-size:34px 34px;animation:stripes 3s linear infinite}
+@keyframes stripes{to{background-position:34px 0}}
+.whead .wi{animation:bob 2.6s ease-in-out infinite;display:inline-block}
+@keyframes bob{50%{transform:translateY(-5px) rotate(6deg)}}
+.wcard{transition:transform .2s}
+.wcard:hover{transform:translateY(-3px)}
+.stars .st{display:inline-block;opacity:0;animation:starpop .5s cubic-bezier(.3,1.6,.5,1) forwards}
+.stars .st.on{color:#f2b600;text-shadow:0 0 12px rgba(255,210,63,.8)}
+.stars .st:not(.on){color:#c9c3dc}
+@keyframes starpop{from{opacity:0;transform:scale(3) rotate(-40deg)}to{opacity:1;transform:none}}
+.newb span{animation:slidein .5s cubic-bezier(.3,1.6,.5,1) both;animation-delay:1.3s}
+@keyframes slidein{from{transform:translateY(16px) scale(.7);opacity:0}}
+.card{animation:cardin .45s cubic-bezier(.3,1.6,.5,1)}
+@keyframes cardin{from{transform:scale(.7) translateY(30px);opacity:0}}
+.combo{display:inline-block;margin-left:8px;background:#ff5ca8;color:#fff;border-radius:999px;padding:2px 10px;font:800 14px "Baloo 2",sans-serif;vertical-align:middle}
+@media(prefers-reduced-motion:reduce){.stars .st,.newb span{opacity:1!important}.say{transition:none}}
+</style>
+</head>
+<body>
+<header class="band top">
+  <div class="deco" id="deco" aria-hidden="true"></div>
+  <div class="wrap">
+    <nav class="topnav" aria-label="Game sections">
+      <button type="button" data-view="map">🗺️ Map</button>
+      <button type="button" data-view="play">▶ Play</button>
+      <button type="button" data-view="ach">🏆 Badges</button>
+      <button type="button" data-view="lb">🥇 Leaderboard</button>
+      <span class="starcount" id="starCount" title="Stars collected">★ 0</span>
+    </nav>
+    <div class="vh" id="viewHead" hidden><h1 id="viewTitle"></h1><p class="story" id="viewSub"></p></div>
+    <div id="playHead">
+    <nav class="map" id="map" aria-label="Levels"></nav>
+    <div class="past" id="past"></div>
+    <div class="hero">
+      <div>
+        <p class="tag" id="tag">Level 1</p>
+        <h1 id="title">Robot Lab Breakout</h1>
+        <p class="story" id="story"></p>
+        <div class="clock">
+          <div><div class="time" id="time">45:00</div><small id="clockNote">Ready when you are</small></div>
+          <button class="go" id="startBtn" type="button">Start the mission</button>
+          <button id="pauseBtn" type="button" hidden>Pause</button>
+          <button id="replayBtn" type="button" hidden>Play again</button>
+          <button class="quiet" id="soundBtn" type="button" aria-pressed="true">Sound on</button>
+        </div>
+        <div class="tray" id="tray" aria-label="Letters collected"></div>
+      </div>
+      <div class="bolt" id="boltBox">
+        <div class="say" id="say" role="status" aria-live="polite"></div>
+        <svg viewBox="0 0 400 400" aria-hidden="true">
+          <defs>
+            <linearGradient id="metal" x1="0" x2="1"><stop offset="0" stop-color="#e9edf7"/><stop offset="1" stop-color="#b9c3dc"/></linearGradient>
+            <linearGradient id="scr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1f2a5c"/><stop offset="1" stop-color="#121a3d"/></linearGradient>
+          </defs>
+          <ellipse cx="200" cy="378" rx="130" ry="14" fill="#1d1a2e" opacity=".22"/>
+          <g id="boltHead">
+          <line x1="200" y1="58" x2="200" y2="24" stroke="#1d1a2e" stroke-width="6"/>
+          <circle id="ant" cx="200" cy="20" r="12" fill="#e5383b" stroke="#1d1a2e" stroke-width="4"/>
+          <rect x="96" y="56" width="208" height="132" rx="30" fill="url(#metal)" stroke="#1d1a2e" stroke-width="6"/>
+          <rect x="70" y="100" width="28" height="48" rx="10" fill="#2f5bea" stroke="#1d1a2e" stroke-width="5"/>
+          <rect x="302" y="100" width="28" height="48" rx="10" fill="#2f5bea" stroke="#1d1a2e" stroke-width="5"/>
+          <rect x="120" y="78" width="160" height="88" rx="16" fill="url(#scr)" stroke="#1d1a2e" stroke-width="5"/>
+          <text id="scrText" x="200" y="134" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="34" fill="#ff5c5c">ERROR</text>
+          </g>
+          <rect x="176" y="188" width="48" height="18" fill="#9aa6c4" stroke="#1d1a2e" stroke-width="5"/>
+          <rect x="108" y="204" width="184" height="150" rx="26" fill="url(#metal)" stroke="#1d1a2e" stroke-width="6"/>
+          <path d="M118 340 h164" stroke="#8e99b8" stroke-width="6" stroke-linecap="round" opacity=".6"/>
+          <rect x="132" y="224" width="136" height="84" rx="14" fill="#2b2547" stroke="#1d1a2e" stroke-width="4"/>
+          <g id="lights"></g>
+          <g id="armL"><rect x="56" y="214" width="46" height="110" rx="22" fill="#2f5bea" stroke="#1d1a2e" stroke-width="6" transform="rotate(10 79 214)"/></g>
+          <g id="armR"><rect x="298" y="214" width="46" height="110" rx="22" fill="#2f5bea" stroke="#1d1a2e" stroke-width="6" transform="rotate(-10 321 214)"/></g>
+          <circle cx="150" cy="324" r="9" fill="#ff7a1a" stroke="#1d1a2e" stroke-width="4"/>
+          <circle cx="250" cy="324" r="9" fill="#ff7a1a" stroke="#1d1a2e" stroke-width="4"/>
+          <g id="badge"></g>
+        </svg>
+      </div>
+    </div>
+    </div>
+  </div>
+</header>
+
+<main class="band" id="playView">
+  <div class="wrap">
+    <h2 id="locksTitle">The locks</h2>
+    <p class="lede" id="lede"></p>
+    <div class="locks" id="locks"></div>
+
+    <section class="final" id="final" aria-disabled="true">
+      <div>
+        <h3 style="font-size:26px;margin:0 0 6px" id="finalTitle">The final lock</h3>
+        <p style="margin:0" id="finalPrompt"></p>
+      </div>
+      <form id="finalForm" class="row" autocomplete="off">
+        <label for="finalIn" class="skill" style="flex-basis:100%">Secret word</label>
+        <input type="text" id="finalIn" maxlength="12">
+        <button class="go" type="submit" id="finalGo">Unlock</button>
+        <button type="button" id="finalHint">Hint</button>
+        <div class="msg" id="finalMsg" style="flex-basis:100%" aria-live="polite"></div>
+      </form>
+    </section>
+    <div class="mini" id="mini"></div>
+
+    <details class="grown" id="grown">
+      <summary>Grown-ups' corner: answers, levels, leaderboard names and reset</summary>
+      <p>Type the grown-up code from page 2 of your kit to see the answers.</p>
+      <form class="row" id="gForm" autocomplete="off">
+        <label for="gIn" class="skill" style="flex-basis:100%">Grown-up code</label>
+        <input type="text" id="gIn" maxlength="8">
+        <button type="submit">Show answers</button>
+        <button type="button" id="unlockAll" hidden>Unlock all levels</button>
+        <button type="button" id="resetBtn">Reset the game</button>
+      </form>
+      <div class="ans" id="ans" hidden></div>
+      <div id="gBoard" hidden></div>
+    </details>
+  </div>
+</main>
+
+<main class="band" id="mapView" hidden><div class="wrap" id="mapBody"></div></main>
+<main class="band" id="achView" hidden><div class="wrap" id="achBody"></div></main>
+<main class="band" id="lbView" hidden><div class="wrap" id="lbBody"></div></main>
+
+<footer class="band" style="padding-top:0"><div class="wrap"><p id="footNote">Curiosity Cove Code-Break Quests. Your progress, stars and badges stay in this browser. Leaderboard names you choose to add are saved with the game, so everyone it's shared with can see them: please use a nickname, not a full name. Confetti by the open-source canvas-confetti library; sound effects by ZzFX (MIT, Frank Force).</p></div></footer>
+
+<div class="count" id="count" hidden aria-live="assertive"></div>
+
+<div class="win" id="win" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+  <div class="card">
+    <div class="big" id="winTitle">BOLT is back!</div>
+    <div class="stars" id="winStars" aria-label=""></div>
+    <p id="winText"></p>
+    <div class="newb" id="winBadges"></div>
+    <form class="lbform" id="lbForm" autocomplete="off">
+      <label for="lbName" class="skill">Add your name to this level's leaderboard (use a nickname, not your full name)</label>
+      <div class="row"><input type="text" id="lbName" maxlength="12" placeholder="Nickname"><button class="go" type="submit" id="lbSave">Add my name</button></div>
+      <div class="msg" id="lbMsg" aria-live="polite"></div>
+    </form>
+    <p id="winNext"></p>
+    <div class="row">
+      <button class="go" type="button" id="winGo">Next level</button>
+      <button type="button" id="winClose">Stay here</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/*! canvas-confetti 1.9.3 | https://github.com/catdad/canvas-confetti | Copyright (c) 2020, Kiril Vatev | ISC License */
+// canvas-confetti v1.9.3 built on 2024-04-30T22:19:17.794Z
+!(function (window, module) {
+// source content
+/* globals Map */
+
+(function main(global, module, isWorker, workerSize) {
+  var canUseWorker = !!(
+    global.Worker &&
+    global.Blob &&
+    global.Promise &&
+    global.OffscreenCanvas &&
+    global.OffscreenCanvasRenderingContext2D &&
+    global.HTMLCanvasElement &&
+    global.HTMLCanvasElement.prototype.transferControlToOffscreen &&
+    global.URL &&
+    global.URL.createObjectURL);
+
+  var canUsePaths = typeof Path2D === 'function' && typeof DOMMatrix === 'function';
+  var canDrawBitmap = (function () {
+    // this mostly supports ssr
+    if (!global.OffscreenCanvas) {
+      return false;
+    }
+
+    var canvas = new OffscreenCanvas(1, 1);
+    var ctx = canvas.getContext('2d');
+    ctx.fillRect(0, 0, 1, 1);
+    var bitmap = canvas.transferToImageBitmap();
+
+    try {
+      ctx.createPattern(bitmap, 'no-repeat');
+    } catch (e) {
+      return false;
+    }
+
+    return true;
+  })();
+
+  function noop() {}
+
+  // create a promise if it exists, otherwise, just
+  // call the function directly
+  function promise(func) {
+    var ModulePromise = module.exports.Promise;
+    var Prom = ModulePromise !== void 0 ? ModulePromise : global.Promise;
+
+    if (typeof Prom === 'function') {
+      return new Prom(func);
+    }
+
+    func(noop, noop);
+
+    return null;
+  }
+
+  var bitmapMapper = (function (skipTransform, map) {
+    // see https://github.com/catdad/canvas-confetti/issues/209
+    // creating canvases is actually pretty expensive, so we should create a
+    // 1:1 map for bitmap:canvas, so that we can animate the confetti in
+    // a performant manner, but also not store them forever so that we don't
+    // have a memory leak
+    return {
+      transform: function(bitmap) {
+        if (skipTransform) {
+          return bitmap;
+        }
+
+        if (map.has(bitmap)) {
+          return map.get(bitmap);
+        }
+
+        var canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(bitmap, 0, 0);
+
+        map.set(bitmap, canvas);
+
+        return canvas;
+      },
+      clear: function () {
+        map.clear();
+      }
+    };
+  })(canDrawBitmap, new Map());
+
+  var raf = (function () {
+    var TIME = Math.floor(1000 / 60);
+    var frame, cancel;
+    var frames = {};
+    var lastFrameTime = 0;
+
+    if (typeof requestAnimationFrame === 'function' && typeof cancelAnimationFrame === 'function') {
+      frame = function (cb) {
+        var id = Math.random();
+
+        frames[id] = requestAnimationFrame(function onFrame(time) {
+          if (lastFrameTime === time || lastFrameTime + TIME - 1 < time) {
+            lastFrameTime = time;
+            delete frames[id];
+
+            cb();
+          } else {
+            frames[id] = requestAnimationFrame(onFrame);
+          }
+        });
+
+        return id;
+      };
+      cancel = function (id) {
+        if (frames[id]) {
+          cancelAnimationFrame(frames[id]);
+        }
+      };
+    } else {
+      frame = function (cb) {
+        return setTimeout(cb, TIME);
+      };
+      cancel = function (timer) {
+        return clearTimeout(timer);
+      };
+    }
+
+    return { frame: frame, cancel: cancel };
+  }());
+
+  var getWorker = (function () {
+    var worker;
+    var prom;
+    var resolves = {};
+
+    function decorate(worker) {
+      function execute(options, callback) {
+        worker.postMessage({ options: options || {}, callback: callback });
+      }
+      worker.init = function initWorker(canvas) {
+        var offscreen = canvas.transferControlToOffscreen();
+        worker.postMessage({ canvas: offscreen }, [offscreen]);
+      };
+
+      worker.fire = function fireWorker(options, size, done) {
+        if (prom) {
+          execute(options, null);
+          return prom;
+        }
+
+        var id = Math.random().toString(36).slice(2);
+
+        prom = promise(function (resolve) {
+          function workerDone(msg) {
+            if (msg.data.callback !== id) {
+              return;
+            }
+
+            delete resolves[id];
+            worker.removeEventListener('message', workerDone);
+
+            prom = null;
+
+            bitmapMapper.clear();
+
+            done();
+            resolve();
+          }
+
+          worker.addEventListener('message', workerDone);
+          execute(options, id);
+
+          resolves[id] = workerDone.bind(null, { data: { callback: id }});
+        });
+
+        return prom;
+      };
+
+      worker.reset = function resetWorker() {
+        worker.postMessage({ reset: true });
+
+        for (var id in resolves) {
+          resolves[id]();
+          delete resolves[id];
+        }
+      };
+    }
+
+    return function () {
+      if (worker) {
+        return worker;
+      }
+
+      if (!isWorker && canUseWorker) {
+        var code = [
+          'var CONFETTI, SIZE = {}, module = {};',
+          '(' + main.toString() + ')(this, module, true, SIZE);',
+          'onmessage = function(msg) {',
+          '  if (msg.data.options) {',
+          '    CONFETTI(msg.data.options).then(function () {',
+          '      if (msg.data.callback) {',
+          '        postMessage({ callback: msg.data.callback });',
+          '      }',
+          '    });',
+          '  } else if (msg.data.reset) {',
+          '    CONFETTI && CONFETTI.reset();',
+          '  } else if (msg.data.resize) {',
+          '    SIZE.width = msg.data.resize.width;',
+          '    SIZE.height = msg.data.resize.height;',
+          '  } else if (msg.data.canvas) {',
+          '    SIZE.width = msg.data.canvas.width;',
+          '    SIZE.height = msg.data.canvas.height;',
+          '    CONFETTI = module.exports.create(msg.data.canvas);',
+          '  }',
+          '}',
+        ].join('\n');
+        try {
+          worker = new Worker(URL.createObjectURL(new Blob([code])));
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          typeof console !== undefined && typeof console.warn === 'function' ? console.warn('🎊 Could not load worker', e) : null;
+
+          return null;
+        }
+
+        decorate(worker);
+      }
+
+      return worker;
+    };
+  })();
+
+  var defaults = {
+    particleCount: 50,
+    angle: 90,
+    spread: 45,
+    startVelocity: 45,
+    decay: 0.9,
+    gravity: 1,
+    drift: 0,
+    ticks: 200,
+    x: 0.5,
+    y: 0.5,
+    shapes: ['square', 'circle'],
+    zIndex: 100,
+    colors: [
+      '#26ccff',
+      '#a25afd',
+      '#ff5e7e',
+      '#88ff5a',
+      '#fcff42',
+      '#ffa62d',
+      '#ff36ff'
+    ],
+    // probably should be true, but back-compat
+    disableForReducedMotion: false,
+    scalar: 1
+  };
+
+  function convert(val, transform) {
+    return transform ? transform(val) : val;
+  }
+
+  function isOk(val) {
+    return !(val === null || val === undefined);
+  }
+
+  function prop(options, name, transform) {
+    return convert(
+      options && isOk(options[name]) ? options[name] : defaults[name],
+      transform
+    );
+  }
+
+  function onlyPositiveInt(number){
+    return number < 0 ? 0 : Math.floor(number);
+  }
+
+  function randomInt(min, max) {
+    // [min, max)
+    return Math.floor(Math.random() * (max - min)) + min;
+  }
+
+  function toDecimal(str) {
+    return parseInt(str, 16);
+  }
+
+  function colorsToRgb(colors) {
+    return colors.map(hexToRgb);
+  }
+
+  function hexToRgb(str) {
+    var val = String(str).replace(/[^0-9a-f]/gi, '');
+
+    if (val.length < 6) {
+        val = val[0]+val[0]+val[1]+val[1]+val[2]+val[2];
+    }
+
+    return {
+      r: toDecimal(val.substring(0,2)),
+      g: toDecimal(val.substring(2,4)),
+      b: toDecimal(val.substring(4,6))
+    };
+  }
+
+  function getOrigin(options) {
+    var origin = prop(options, 'origin', Object);
+    origin.x = prop(origin, 'x', Number);
+    origin.y = prop(origin, 'y', Number);
+
+    return origin;
+  }
+
+  function setCanvasWindowSize(canvas) {
+    canvas.width = document.documentElement.clientWidth;
+    canvas.height = document.documentElement.clientHeight;
+  }
+
+  function setCanvasRectSize(canvas) {
+    var rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+  }
+
+  function getCanvas(zIndex) {
+    var canvas = document.createElement('canvas');
+
+    canvas.style.position = 'fixed';
+    canvas.style.top = '0px';
+    canvas.style.left = '0px';
+    canvas.style.pointerEvents = 'none';
+    canvas.style.zIndex = zIndex;
+
+    return canvas;
+  }
+
+  function ellipse(context, x, y, radiusX, radiusY, rotation, startAngle, endAngle, antiClockwise) {
+    context.save();
+    context.translate(x, y);
+    context.rotate(rotation);
+    context.scale(radiusX, radiusY);
+    context.arc(0, 0, 1, startAngle, endAngle, antiClockwise);
+    context.restore();
+  }
+
+  function randomPhysics(opts) {
+    var radAngle = opts.angle * (Math.PI / 180);
+    var radSpread = opts.spread * (Math.PI / 180);
+
+    return {
+      x: opts.x,
+      y: opts.y,
+      wobble: Math.random() * 10,
+      wobbleSpeed: Math.min(0.11, Math.random() * 0.1 + 0.05),
+      velocity: (opts.startVelocity * 0.5) + (Math.random() * opts.startVelocity),
+      angle2D: -radAngle + ((0.5 * radSpread) - (Math.random() * radSpread)),
+      tiltAngle: (Math.random() * (0.75 - 0.25) + 0.25) * Math.PI,
+      color: opts.color,
+      shape: opts.shape,
+      tick: 0,
+      totalTicks: opts.ticks,
+      decay: opts.decay,
+      drift: opts.drift,
+      random: Math.random() + 2,
+      tiltSin: 0,
+      tiltCos: 0,
+      wobbleX: 0,
+      wobbleY: 0,
+      gravity: opts.gravity * 3,
+      ovalScalar: 0.6,
+      scalar: opts.scalar,
+      flat: opts.flat
+    };
+  }
+
+  function updateFetti(context, fetti) {
+    fetti.x += Math.cos(fetti.angle2D) * fetti.velocity + fetti.drift;
+    fetti.y += Math.sin(fetti.angle2D) * fetti.velocity + fetti.gravity;
+    fetti.velocity *= fetti.decay;
+
+    if (fetti.flat) {
+      fetti.wobble = 0;
+      fetti.wobbleX = fetti.x + (10 * fetti.scalar);
+      fetti.wobbleY = fetti.y + (10 * fetti.scalar);
+
+      fetti.tiltSin = 0;
+      fetti.tiltCos = 0;
+      fetti.random = 1;
+    } else {
+      fetti.wobble += fetti.wobbleSpeed;
+      fetti.wobbleX = fetti.x + ((10 * fetti.scalar) * Math.cos(fetti.wobble));
+      fetti.wobbleY = fetti.y + ((10 * fetti.scalar) * Math.sin(fetti.wobble));
+
+      fetti.tiltAngle += 0.1;
+      fetti.tiltSin = Math.sin(fetti.tiltAngle);
+      fetti.tiltCos = Math.cos(fetti.tiltAngle);
+      fetti.random = Math.random() + 2;
+    }
+
+    var progress = (fetti.tick++) / fetti.totalTicks;
+
+    var x1 = fetti.x + (fetti.random * fetti.tiltCos);
+    var y1 = fetti.y + (fetti.random * fetti.tiltSin);
+    var x2 = fetti.wobbleX + (fetti.random * fetti.tiltCos);
+    var y2 = fetti.wobbleY + (fetti.random * fetti.tiltSin);
+
+    context.fillStyle = 'rgba(' + fetti.color.r + ', ' + fetti.color.g + ', ' + fetti.color.b + ', ' + (1 - progress) + ')';
+
+    context.beginPath();
+
+    if (canUsePaths && fetti.shape.type === 'path' && typeof fetti.shape.path === 'string' && Array.isArray(fetti.shape.matrix)) {
+      context.fill(transformPath2D(
+        fetti.shape.path,
+        fetti.shape.matrix,
+        fetti.x,
+        fetti.y,
+        Math.abs(x2 - x1) * 0.1,
+        Math.abs(y2 - y1) * 0.1,
+        Math.PI / 10 * fetti.wobble
+      ));
+    } else if (fetti.shape.type === 'bitmap') {
+      var rotation = Math.PI / 10 * fetti.wobble;
+      var scaleX = Math.abs(x2 - x1) * 0.1;
+      var scaleY = Math.abs(y2 - y1) * 0.1;
+      var width = fetti.shape.bitmap.width * fetti.scalar;
+      var height = fetti.shape.bitmap.height * fetti.scalar;
+
+      var matrix = new DOMMatrix([
+        Math.cos(rotation) * scaleX,
+        Math.sin(rotation) * scaleX,
+        -Math.sin(rotation) * scaleY,
+        Math.cos(rotation) * scaleY,
+        fetti.x,
+        fetti.y
+      ]);
+
+      // apply the transform matrix from the confetti shape
+      matrix.multiplySelf(new DOMMatrix(fetti.shape.matrix));
+
+      var pattern = context.createPattern(bitmapMapper.transform(fetti.shape.bitmap), 'no-repeat');
+      pattern.setTransform(matrix);
+
+      context.globalAlpha = (1 - progress);
+      context.fillStyle = pattern;
+      context.fillRect(
+        fetti.x - (width / 2),
+        fetti.y - (height / 2),
+        width,
+        height
+      );
+      context.globalAlpha = 1;
+    } else if (fetti.shape === 'circle') {
+      context.ellipse ?
+        context.ellipse(fetti.x, fetti.y, Math.abs(x2 - x1) * fetti.ovalScalar, Math.abs(y2 - y1) * fetti.ovalScalar, Math.PI / 10 * fetti.wobble, 0, 2 * Math.PI) :
+        ellipse(context, fetti.x, fetti.y, Math.abs(x2 - x1) * fetti.ovalScalar, Math.abs(y2 - y1) * fetti.ovalScalar, Math.PI / 10 * fetti.wobble, 0, 2 * Math.PI);
+    } else if (fetti.shape === 'star') {
+      var rot = Math.PI / 2 * 3;
+      var innerRadius = 4 * fetti.scalar;
+      var outerRadius = 8 * fetti.scalar;
+      var x = fetti.x;
+      var y = fetti.y;
+      var spikes = 5;
+      var step = Math.PI / spikes;
+
+      while (spikes--) {
+        x = fetti.x + Math.cos(rot) * outerRadius;
+        y = fetti.y + Math.sin(rot) * outerRadius;
+        context.lineTo(x, y);
+        rot += step;
+
+        x = fetti.x + Math.cos(rot) * innerRadius;
+        y = fetti.y + Math.sin(rot) * innerRadius;
+        context.lineTo(x, y);
+        rot += step;
+      }
+    } else {
+      context.moveTo(Math.floor(fetti.x), Math.floor(fetti.y));
+      context.lineTo(Math.floor(fetti.wobbleX), Math.floor(y1));
+      context.lineTo(Math.floor(x2), Math.floor(y2));
+      context.lineTo(Math.floor(x1), Math.floor(fetti.wobbleY));
+    }
+
+    context.closePath();
+    context.fill();
+
+    return fetti.tick < fetti.totalTicks;
+  }
+
+  function animate(canvas, fettis, resizer, size, done) {
+    var animatingFettis = fettis.slice();
+    var context = canvas.getContext('2d');
+    var animationFrame;
+    var destroy;
+
+    var prom = promise(function (resolve) {
+      function onDone() {
+        animationFrame = destroy = null;
+
+        context.clearRect(0, 0, size.width, size.height);
+        bitmapMapper.clear();
+
+        done();
+        resolve();
+      }
+
+      function update() {
+        if (isWorker && !(size.width === workerSize.width && size.height === workerSize.height)) {
+          size.width = canvas.width = workerSize.width;
+          size.height = canvas.height = workerSize.height;
+        }
+
+        if (!size.width && !size.height) {
+          resizer(canvas);
+          size.width = canvas.width;
+          size.height = canvas.height;
+        }
+
+        context.clearRect(0, 0, size.width, size.height);
+
+        animatingFettis = animatingFettis.filter(function (fetti) {
+          return updateFetti(context, fetti);
+        });
+
+        if (animatingFettis.length) {
+          animationFrame = raf.frame(update);
+        } else {
+          onDone();
+        }
+      }
+
+      animationFrame = raf.frame(update);
+      destroy = onDone;
+    });
+
+    return {
+      addFettis: function (fettis) {
+        animatingFettis = animatingFettis.concat(fettis);
+
+        return prom;
+      },
+      canvas: canvas,
+      promise: prom,
+      reset: function () {
+        if (animationFrame) {
+          raf.cancel(animationFrame);
+        }
+
+        if (destroy) {
+          destroy();
+        }
+      }
+    };
+  }
+
+  function confettiCannon(canvas, globalOpts) {
+    var isLibCanvas = !canvas;
+    var allowResize = !!prop(globalOpts || {}, 'resize');
+    var hasResizeEventRegistered = false;
+    var globalDisableForReducedMotion = prop(globalOpts, 'disableForReducedMotion', Boolean);
+    var shouldUseWorker = canUseWorker && !!prop(globalOpts || {}, 'useWorker');
+    var worker = shouldUseWorker ? getWorker() : null;
+    var resizer = isLibCanvas ? setCanvasWindowSize : setCanvasRectSize;
+    var initialized = (canvas && worker) ? !!canvas.__confetti_initialized : false;
+    var preferLessMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion)').matches;
+    var animationObj;
+
+    function fireLocal(options, size, done) {
+      var particleCount = prop(options, 'particleCount', onlyPositiveInt);
+      var angle = prop(options, 'angle', Number);
+      var spread = prop(options, 'spread', Number);
+      var startVelocity = prop(options, 'startVelocity', Number);
+      var decay = prop(options, 'decay', Number);
+      var gravity = prop(options, 'gravity', Number);
+      var drift = prop(options, 'drift', Number);
+      var colors = prop(options, 'colors', colorsToRgb);
+      var ticks = prop(options, 'ticks', Number);
+      var shapes = prop(options, 'shapes');
+      var scalar = prop(options, 'scalar');
+      var flat = !!prop(options, 'flat');
+      var origin = getOrigin(options);
+
+      var temp = particleCount;
+      var fettis = [];
+
+      var startX = canvas.width * origin.x;
+      var startY = canvas.height * origin.y;
+
+      while (temp--) {
+        fettis.push(
+          randomPhysics({
+            x: startX,
+            y: startY,
+            angle: angle,
+            spread: spread,
+            startVelocity: startVelocity,
+            color: colors[temp % colors.length],
+            shape: shapes[randomInt(0, shapes.length)],
+            ticks: ticks,
+            decay: decay,
+            gravity: gravity,
+            drift: drift,
+            scalar: scalar,
+            flat: flat
+          })
+        );
+      }
+
+      // if we have a previous canvas already animating,
+      // add to it
+      if (animationObj) {
+        return animationObj.addFettis(fettis);
+      }
+
+      animationObj = animate(canvas, fettis, resizer, size , done);
+
+      return animationObj.promise;
+    }
+
+    function fire(options) {
+      var disableForReducedMotion = globalDisableForReducedMotion || prop(options, 'disableForReducedMotion', Boolean);
+      var zIndex = prop(options, 'zIndex', Number);
+
+      if (disableForReducedMotion && preferLessMotion) {
+        return promise(function (resolve) {
+          resolve();
+        });
+      }
+
+      if (isLibCanvas && animationObj) {
+        // use existing canvas from in-progress animation
+        canvas = animationObj.canvas;
+      } else if (isLibCanvas && !canvas) {
+        // create and initialize a new canvas
+        canvas = getCanvas(zIndex);
+        document.body.appendChild(canvas);
+      }
+
+      if (allowResize && !initialized) {
+        // initialize the size of a user-supplied canvas
+        resizer(canvas);
+      }
+
+      var size = {
+        width: canvas.width,
+        height: canvas.height
+      };
+
+      if (worker && !initialized) {
+        worker.init(canvas);
+      }
+
+      initialized = true;
+
+      if (worker) {
+        canvas.__confetti_initialized = true;
+      }
+
+      function onResize() {
+        if (worker) {
+          // TODO this really shouldn't be immediate, because it is expensive
+          var obj = {
+            getBoundingClientRect: function () {
+              if (!isLibCanvas) {
+                return canvas.getBoundingClientRect();
+              }
+            }
+          };
+
+          resizer(obj);
+
+          worker.postMessage({
+            resize: {
+              width: obj.width,
+              height: obj.height
+            }
+          });
+          return;
+        }
+
+        // don't actually query the size here, since this
+        // can execute frequently and rapidly
+        size.width = size.height = null;
+      }
+
+      function done() {
+        animationObj = null;
+
+        if (allowResize) {
+          hasResizeEventRegistered = false;
+          global.removeEventListener('resize', onResize);
+        }
+
+        if (isLibCanvas && canvas) {
+          if (document.body.contains(canvas)) {
+            document.body.removeChild(canvas); 
+          }
+          canvas = null;
+          initialized = false;
+        }
+      }
+
+      if (allowResize && !hasResizeEventRegistered) {
+        hasResizeEventRegistered = true;
+        global.addEventListener('resize', onResize, false);
+      }
+
+      if (worker) {
+        return worker.fire(options, size, done);
+      }
+
+      return fireLocal(options, size, done);
+    }
+
+    fire.reset = function () {
+      if (worker) {
+        worker.reset();
+      }
+
+      if (animationObj) {
+        animationObj.reset();
+      }
+    };
+
+    return fire;
+  }
+
+  // Make default export lazy to defer worker creation until called.
+  var defaultFire;
+  function getDefaultFire() {
+    if (!defaultFire) {
+      defaultFire = confettiCannon(null, { useWorker: true, resize: true });
+    }
+    return defaultFire;
+  }
+
+  function transformPath2D(pathString, pathMatrix, x, y, scaleX, scaleY, rotation) {
+    var path2d = new Path2D(pathString);
+
+    var t1 = new Path2D();
+    t1.addPath(path2d, new DOMMatrix(pathMatrix));
+
+    var t2 = new Path2D();
+    // see https://developer.mozilla.org/en-US/docs/Web/API/DOMMatrix/DOMMatrix
+    t2.addPath(t1, new DOMMatrix([
+      Math.cos(rotation) * scaleX,
+      Math.sin(rotation) * scaleX,
+      -Math.sin(rotation) * scaleY,
+      Math.cos(rotation) * scaleY,
+      x,
+      y
+    ]));
+
+    return t2;
+  }
+
+  function shapeFromPath(pathData) {
+    if (!canUsePaths) {
+      throw new Error('path confetti are not supported in this browser');
+    }
+
+    var path, matrix;
+
+    if (typeof pathData === 'string') {
+      path = pathData;
+    } else {
+      path = pathData.path;
+      matrix = pathData.matrix;
+    }
+
+    var path2d = new Path2D(path);
+    var tempCanvas = document.createElement('canvas');
+    var tempCtx = tempCanvas.getContext('2d');
+
+    if (!matrix) {
+      // attempt to figure out the width of the path, up to 1000x1000
+      var maxSize = 1000;
+      var minX = maxSize;
+      var minY = maxSize;
+      var maxX = 0;
+      var maxY = 0;
+      var width, height;
+
+      // do some line skipping... this is faster than checking
+      // every pixel and will be mostly still correct
+      for (var x = 0; x < maxSize; x += 2) {
+        for (var y = 0; y < maxSize; y += 2) {
+          if (tempCtx.isPointInPath(path2d, x, y, 'nonzero')) {
+            minX = Math.min(minX, x);
+            minY = Math.min(minY, y);
+            maxX = Math.max(maxX, x);
+            maxY = Math.max(maxY, y);
+          }
+        }
+      }
+
+      width = maxX - minX;
+      height = maxY - minY;
+
+      var maxDesiredSize = 10;
+      var scale = Math.min(maxDesiredSize/width, maxDesiredSize/height);
+
+      matrix = [
+        scale, 0, 0, scale,
+        -Math.round((width/2) + minX) * scale,
+        -Math.round((height/2) + minY) * scale
+      ];
+    }
+
+    return {
+      type: 'path',
+      path: path,
+      matrix: matrix
+    };
+  }
+
+  function shapeFromText(textData) {
+    var text,
+        scalar = 1,
+        color = '#000000',
+        // see https://nolanlawson.com/2022/04/08/the-struggle-of-using-native-emoji-on-the-web/
+        fontFamily = '"Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", "EmojiOne Color", "Android Emoji", "Twemoji Mozilla", "system emoji", sans-serif';
+
+    if (typeof textData === 'string') {
+      text = textData;
+    } else {
+      text = textData.text;
+      scalar = 'scalar' in textData ? textData.scalar : scalar;
+      fontFamily = 'fontFamily' in textData ? textData.fontFamily : fontFamily;
+      color = 'color' in textData ? textData.color : color;
+    }
+
+    // all other confetti are 10 pixels,
+    // so this pixel size is the de-facto 100% scale confetti
+    var fontSize = 10 * scalar;
+    var font = '' + fontSize + 'px ' + fontFamily;
+
+    var canvas = new OffscreenCanvas(fontSize, fontSize);
+    var ctx = canvas.getContext('2d');
+
+    ctx.font = font;
+    var size = ctx.measureText(text);
+    var width = Math.ceil(size.actualBoundingBoxRight + size.actualBoundingBoxLeft);
+    var height = Math.ceil(size.actualBoundingBoxAscent + size.actualBoundingBoxDescent);
+
+    var padding = 2;
+    var x = size.actualBoundingBoxLeft + padding;
+    var y = size.actualBoundingBoxAscent + padding;
+    width += padding + padding;
+    height += padding + padding;
+
+    canvas = new OffscreenCanvas(width, height);
+    ctx = canvas.getContext('2d');
+    ctx.font = font;
+    ctx.fillStyle = color;
+
+    ctx.fillText(text, x, y);
+
+    var scale = 1 / scalar;
+
+    return {
+      type: 'bitmap',
+      // TODO these probably need to be transfered for workers
+      bitmap: canvas.transferToImageBitmap(),
+      matrix: [scale, 0, 0, scale, -width * scale / 2, -height * scale / 2]
+    };
+  }
+
+  module.exports = function() {
+    return getDefaultFire().apply(this, arguments);
+  };
+  module.exports.reset = function() {
+    getDefaultFire().reset();
+  };
+  module.exports.create = confettiCannon;
+  module.exports.shapeFromPath = shapeFromPath;
+  module.exports.shapeFromText = shapeFromText;
+}((function () {
+  if (typeof window !== 'undefined') {
+    return window;
+  }
+
+  if (typeof self !== 'undefined') {
+    return self;
+  }
+
+  return this || {};
+})(), module, false));
+
+// end source content
+
+  window.confetti = module.exports;
+}(window, {}));
+
+</script>
+<script>
+{
+const D={"app":true,"dailyUrl":"../daily.json","levels": [{"name": "Robot Lab Breakout", "tag": "Level 1", "story": "BOLT the helper robot has glitched and locked the lab! Crack all six locks to collect the letters of his secret reboot word, then type it in before the clock runs out.", "limit": 45, "locks": [{"t": "BOLT's Name Badge", "s": "Binary numbers", "type": "binary", "h": "6f352635", "r": "E", "hints": ["Only add the numbers above the lights that are ON (filled in).", "The first row has the 4-light and the 1-light ON. 4 + 1 = 5. Now do the other three rows."], "max": 4, "kit": 4, "d": {"rows": ["0101", "0011", "1001", "0111"]}}, {"t": "The Arrow Program", "s": "Algorithms and sequencing", "type": "grid", "h": "b0ce3d07", "r": "R", "hints": ["Only write down the letter where each instruction STOPS, not every square you pass.", "The first instruction is 2 squares right from the star. You land on G."], "max": 5, "kit": 5, "d": {"grid": [["*", "K", "G", "P", "Z"], ["R", "M", "T", "D", "S"], ["H", "W", "L", "Y", "C"], ["A", "N", "E", "F", "J"], ["U", "X", "Q", "V", "I"]], "program": [["right", 2], ["down", 3], ["left", 2], ["up", 2], ["right", 4]]}}, {"t": "BOLT's Secret Diary", "s": "Codes and encryption", "type": "cipher", "h": "abc6567f", "r": "B", "hints": ["Find each scrambled letter on the code strip, then count 3 letters to the LEFT.", "W K H becomes T H E. The password is the last word."], "max": 6, "kit": 6, "d": {"enc": "WKH SDVVZRUG LV PDJQHW", "shift": 3}}, {"t": "The Light Show Loop", "s": "Loops", "type": "loops", "h": "72fcfb64", "r": "O", "hints": ["The inside REPEAT runs fully every time the outside REPEAT runs once.", "Each time through the big loop: 1 red and 3 blues. The big loop runs twice."], "max": 4, "kit": 7, "d": {"program_lines": ["REPEAT 2 TIMES:", "    flash RED", "    REPEAT 3 TIMES:", "        flash BLUE", "flash GREEN", "REPEAT 4 TIMES:", "    flash YELLOW"]}}, {"t": "Robot Line-Up", "s": "Logical thinking", "type": "robots", "h": "d26456e1", "r": "T", "hints": ["BOLT has battery 3, so BOLT can't have the blue antenna (blue has battery 8).", "NUT is green and BOLT isn't blue, so ZIP must be blue, which means ZIP has battery 8."], "max": 3, "kit": 8, "d": {"intro": "BOLT, ZIP and NUT each have a different antenna (red, green, blue) and battery number (3, 5, 8). The code is BOLT's, ZIP's, then NUT's battery number.", "clues": ["NUT's antenna is green.", "BOLT's battery number is 3.", "The robot with the blue antenna has battery number 8.", "ZIP's antenna is not red."]}}, {"t": "The Broken Screen", "s": "Pixels and screens", "type": "pixels", "h": "87e38583", "r": "O", "hints": ["Work one row at a time. Colour a square only where the chip says 1.", "The picture shows two digits side by side, with a blank column between them."], "max": 2, "kit": 9, "d": {"pixel_rows": ["1010111", "1010001", "1110111", "0010100", "0010111"]}}], "final": {"title": "The Reboot Lock", "button": "Reboot BOLT", "done": "BOLT rebooted! The lab doors are open.", "winTitle": "BOLT is back!", "teaser": "", "clue": "Unscramble them to find the magic word that fixes a glitched computer.", "hints": ["It's what grown-ups say when a computer freezes: 'Have you tried turning it off and on...'", "It starts with R and has two O's next to each other."], "h": "2a320c78"}, "teaser": ""}, {"name": "Memory Maze", "tag": "Level 2", "story": "BOLT is awake, but his memory is scrambled! Five memory chips are jumbled up. Fix them all to collect the letters of the word BOLT uses to think things through.", "limit": 35, "locks": [{"t": "The Name Chip", "s": "Binary and letter codes", "type": "binary5", "h": "7a52fdbb", "r": "G", "hints": ["Row 1 has the 16, 2 and 1 lights ON: 16+2+1 = 19. The 19th letter is S.", "The six numbers are 19, 5, 14, 19, 15, 18."], "max": 6, "d": {"rows": ["10011", "00101", "01110", "10011", "01111", "10010"], "intro": "This chip uses 5 lights worth 16, 8, 4, 2 and 1. Add up each row, then turn the number into a letter: A=1, B=2, C=3 and so on."}}, {"t": "The Sorting Machine", "s": "If / else decisions", "type": "sorter", "h": "9c2b75a3", "r": "I", "hints": ["Check the rules in order. As soon as one rule is true, stop and drop the number.", "Bin A gets 7, 9, 6 and 8. Now sort the rest."], "max": 3, "d": {"items": [7, 2, 9, 4, 3, 6, 1, 8], "code": ["FOR each number:", "    IF number > 5:", "        drop it in bin A", "    ELSE IF number is even:", "        drop it in bin B", "    ELSE:", "        drop it in bin C"], "intro": "BOLT's sorting machine drops each number into bin A, B or C. Follow the rules for every number. The code is how many numbers land in bin A, then B, then C."}}, {"t": "The Number Message", "s": "Number codes", "type": "a1z26", "h": "1eea33e3", "r": "L", "hints": ["Use the alphabet strip: count along to each number.", "20 is T and 15 is O."], "max": 6, "d": {"nums": [20, 15, 18, 17, 21, 5], "intro": "BOLT hid a word as numbers. Each number is a letter's place in the alphabet (A=1, Z=26). Decode it to find the part that makes his wheels turn."}}, {"t": "The Charging Pattern", "s": "Patterns and sequences", "type": "sequence", "h": "234fef64", "r": "C", "hints": ["Look at the gaps between the numbers: +1, +2, +3...", "16 + 6 = 22. What comes after 22?"], "max": 4, "d": {"seq": [1, 2, 4, 7, 11, 16], "intro": "BOLT's battery charges in a pattern. Work out the rule and find the next TWO numbers. Type them one after the other as the code."}}, {"t": "The Map Chip", "s": "Coordinates", "type": "coords", "h": "320ca3f6", "r": "O", "hints": ["The first number goes ACROSS, the second goes UP. (1,5) is top left.", "Five points make a line along the top. The others drop down the middle."], "max": 1, "d": {"points": [[1, 5], [2, 5], [3, 5], [4, 5], [5, 5], [4, 4], [3, 3], [3, 2], [3, 1]], "intro": "The map chip stores a picture as coordinates (across, up). Light up every point on the grid to reveal a number."}}], "final": {"title": "The Memory Lock", "button": "Restore memory", "done": "Memory restored! BOLT remembers everything.", "winTitle": "Memory fixed!", "teaser": "BOLT's memory got scrambled in the reboot. Can you fix it?", "clue": "Unscramble the letters to find what BOLT uses to think things through.", "hints": ["It's a type of thinking puzzle you solved in Level 1, the Robot Line-Up.", "It starts with L and ends with C."], "h": "b1d21631"}, "teaser": "BOLT's memory got scrambled in the reboot. Can you fix it?"}, {"name": "Space Signal", "tag": "Level 3", "story": "BOLT's antenna has picked up a mystery signal from space! Decode five transmissions to find out what's circling the Earth and sending him messages.", "limit": 40, "locks": [{"t": "Binary Adding Machine", "s": "Binary addition", "type": "binadd", "h": "2297cac4", "r": "T", "hints": ["Work from the RIGHT, just like normal adding. 1 + 1 = 10: write 0, carry 1.", "Check it in normal numbers: 0101 is 5 and 0011 is 3. 5 + 3 = 8. What is 8 in binary?"], "max": 4, "d": {"a": "0101", "b": "0011", "intro": "Computers add in binary. Work out 0101 + 0011 and write the answer as 4 binary digits. Tip: in binary, 1 + 1 = 10, so you write 0 and carry 1."}}, {"t": "The Spiral Route", "s": "Algorithms with turns", "type": "spiral", "h": "28068eb7", "r": "B", "hints": ["Forward 1 from the star, facing up, lands on P. Then turn right to face right.", "After the second turn the rover faces DOWN. After the third, it faces LEFT."], "max": 5, "d": {"grid": [["M", "L", "Q", "W", "K"], ["T", "A", "P", "I", "F"], ["Y", "H", "*", "N", "D"], ["B", "E", "R", "X", "G"], ["J", "U", "C", "S", "V"]], "program": ["Forward 1", "Turn right", "Forward 1", "Turn right", "Forward 2", "Turn right", "Forward 2", "Turn right", "Forward 3"], "intro": "The rover starts on the star, facing UP. Follow the program. 'Turn right' spins it on the spot. Write down the letter after every Forward move."}}, {"t": "Mirror Code", "s": "Codes and encryption", "type": "atbash", "h": "29cb654a", "r": "O", "hints": ["Find each letter on the bottom row of the strip and read the letter above it.", "H becomes S and Z becomes A."], "max": 9, "d": {"intro": "The signal uses a mirror code: the alphabet is flipped, so A swaps with Z, B with Y, C with X and so on. Use the mirror strip to decode the word.", "enc": "HZGVOORGV"}}, {"t": "Launch Line-Up", "s": "Logical thinking", "type": "lineup", "h": "c5d32e95", "r": "I", "hints": ["VOLT takes space 1. NUT and ZIP must stand side by side, in that order.", "If NUT and ZIP took spaces 2 and 3, BOLT would be last, and that breaks a clue."], "max": 4, "d": {"robots": ["BOLT", "ZIP", "NUT", "VOLT"], "clues": ["VOLT is first in line.", "ZIP stands directly to the right of NUT.", "BOLT is not last."], "intro": "Four robots line up in spaces 1 to 4 for the rocket launch. Use the clues to find the order. The code is the first letter of each robot's name, from space 1 to space 4."}}, {"t": "The Signal Booster", "s": "Variables", "type": "variables", "h": "3c0cb3b4", "r": "R", "hints": ["First time round: 2 x 2 = 4, then 4 - 1 = 3. Now x is 3.", "Second time: 3 x 2 = 6, then 6 - 1 = 5. One more time to go."], "max": 1, "d": {"code": ["x = 2", "REPEAT 3 TIMES:", "    x = x * 2", "    x = x - 1", "SHOW x"], "intro": "A variable is a box that holds a number that can change. Follow the program line by line and keep track of x. The code is the number it shows at the end."}}], "final": {"title": "The Signal Lock", "button": "Decode signal", "done": "Signal decoded: a friendly space probe is waving hello!", "winTitle": "Signal decoded!", "teaser": "A mystery signal is beaming down from space...", "clue": "Unscramble the letters to find the path something travels as it circles around a planet.", "hints": ["The Moon does this around the Earth, too.", "It starts with O and ends with T."], "h": "93a640af"}, "teaser": "A mystery signal is beaming down from space..."}, {"name": "The Big Upgrade", "tag": "Level 4", "story": "Final level! BOLT has earned an upgrade, and the robot factory needs your help to install it. Pass five tough engineering tests to give BOLT his brand-new part.", "limit": 45, "locks": [{"t": "Bubble Sort Test", "s": "Sorting algorithms", "type": "bubble", "h": "300ca0d0", "r": "N", "hints": ["First pass: 4 and 2 swap, then 4 and 3 swap, then 4 and 1 swap. That's 3 swaps, and the row is 2, 3, 1, 4.", "Second pass: 3 and 1 swap. Third pass: 2 and 1 swap. Count them all."], "max": 1, "d": {"list": [4, 2, 3, 1], "intro": "Bubble sort puts numbers in order by looking at neighbours. If the left one is bigger, they SWAP. Keep going along the row, again and again, until nothing needs swapping. How many swaps does it take to sort 4, 2, 3, 1 smallest to biggest?"}}, {"t": "Logic Gate Panel", "s": "Logic gates", "type": "gates", "h": "60c82ad1", "r": "A", "hints": ["A AND B: A is 1 but B is 0, so not both are ON. Light 1 is 0.", "NOT B flips 0 into 1. B OR C: is at least one of them ON?"], "max": 3, "d": {"inputs": {"A": 1, "B": 0, "C": 1}, "gates": ["Light 1 = A AND B", "Light 2 = NOT B", "Light 3 = B OR C"], "intro": "Robots make decisions with logic gates. 1 means ON and 0 means OFF. AND is ON only if both inputs are ON. OR is ON if at least one is ON. NOT flips the input. Work out lights 1, 2 and 3."}}, {"t": "The Factory Lock", "s": "Codes and keys", "type": "caesar5", "h": "adbeb0b4", "r": "B", "hints": ["The Bubble Sort Test answer is the shift. It's 5.", "H shifted back 5 is C, and N shifted back 5 is I."], "max": 7, "d": {"shift": 5, "intro": "This code shifts every letter forward. The secret shift number is the answer to the Bubble Sort Test! Shift each letter BACK by that number to find the part BOLT needs.", "enc": "HNWHZNY"}}, {"t": "Quality Score", "s": "Loops with if", "type": "score", "h": "13eb1dac", "r": "R", "hints": ["3 is odd, so score = 0 - 1 = -1. Then 8 is even: -1 + 8 = 7.", "Keep going: 5 is odd, 10 is even, 2 is even."], "max": 2, "d": {"code": ["score = 0", "FOR each number in [3, 8, 5, 10, 2]:", "    IF number is even:", "        score = score + number", "    ELSE:", "        score = score - 1", "SHOW score"], "intro": "The factory checks each part with this program. Follow it number by number and keep track of the score. The code is the score at the end."}}, {"t": "Shortest Route", "s": "Networks and paths", "type": "graph", "h": "1ceb2bd7", "r": "I", "hints": ["Going straight from the Lab to the Store costs 4. Is there a cheaper way to reach the Store?", "Lab to Hall to Store costs 2 + 1 = 3. Now find the best way from the Store to the Charger."], "max": 2, "d": {"nodes": {"Lab": [0, 1], "Store": [1, 0], "Hall": [1, 2], "Workshop": [2, 1], "Charger": [3, 1]}, "edges": [["Lab", "Store", 4], ["Lab", "Hall", 2], ["Hall", "Store", 1], ["Store", "Workshop", 5], ["Hall", "Workshop", 8], ["Workshop", "Charger", 3], ["Store", "Charger", 9]], "intro": "BOLT needs the shortest route from the Lab to the Charger. Each corridor shows how many metres long it is. Find the route with the smallest total. The code is that total distance."}}], "final": {"title": "The Upgrade Lock", "button": "Install upgrade", "done": "Upgrade installed. BOLT 2.0 is online!", "winTitle": "BOLT 2.0!", "teaser": "The final test: give BOLT his big upgrade.", "clue": "Unscramble the letters to find BOLT's shiny new upgrade: the part he thinks with.", "hints": ["You have one, too. It lives in your head.", "It starts with B and ends with N."], "h": "527677d3"}, "teaser": "The final test: give BOLT his big upgrade."}], "grown": "b850f046", "secret": "XV0iTklBUkIiICwiMTEiICwiODEiICwiVElVQ1JJQyIgLCIxMTAiICwiNSJbICxdIlRJQlJPIiAsIjkiICwiWk5CViIgLCJFVElMTEVUQVMiICwiTEVYSVAiICwiMDAwMSJbICxdIkNJR09MIiAsIjciICwiOTIyMiIgLCJFVVFST1QiICwiMjI0IiAsIlJPU05FUyJbICxdIlRPT0JFUiIgLCIyNCIgLCI1ODMiICwiNDE2MiIgLCJURU5HQU0iICwiU1JBRUciICwiNzkzNSJbWw=="};
+const APP=!!D.app;
+const LV=D.levels;
+const COLS=["#ffd23f","#7ccf3f","#4fc3ff","#ff7a1a","#ff5ca8","#b48cff"];
+const ANT=["#e5383b","#7ccf3f","#4fc3ff","#ffd23f"];
+const AB="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const MORSE={A:".-",B:"-...",C:"-.-.",D:"-..",E:".",F:"..-.",G:"--.",H:"....",I:"..",J:".---",K:"-.-",L:".-..",M:"--",N:"-.",O:"---",P:".--.",Q:"--.-",R:".-.",S:"...",T:"-",U:"..-",V:"...-",W:".--",X:"-..-",Y:"-.--",Z:"--.."};
+const hash=s=>{s=s.toUpperCase().replace(/[^A-Z0-9]/g,"");let x=2166136261;for(const c of s){x^=c.charCodeAt(0);x=Math.imul(x,16777619)>>>0}return x.toString(16)};
+const $=id=>document.getElementById(id);
+const esc=v=>String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const DAILY=[],WORLDS=[],ADV=[],TYPECAT={robots:"Logic"};
+const lvFresh=L=>({solved:[],hints:L.locks.map(()=>0),fhint:0,elapsed:0,won:false,pix:{},cells:{},miss:0});
+const fresh=()=>({cur:"m0",unlocked:1,xun:0,running:false,sound:true,prog:{},best:{},ever:{},badges:{},board:[],name:"",f:{},view:"play"});
+let S=fresh(),t0=0,tick=null,actx=null,savedCur=null,lastWin=null,recTab="m";
+const lvOf=k=>{if(!k)return null;const c=k[0],n=+k.slice(1);if(c==="m")return LV[n]||null;if(c==="x")return ADV[n]||null;if(c==="d")return DAILY.find(d=>"d"+d.date===k)||null;return null};
+const isDaily=k=>k[0]==="d";
+const cur=()=>lvOf(S.cur)||LV[0];
+const st=()=>S.prog[S.cur]||(S.prog[S.cur]=lvFresh(cur()));
+const mainIdx=()=>S.cur[0]==="m"?+S.cur.slice(1):-1;
+const advIdx=()=>S.cur[0]==="x"?+S.cur.slice(1):-1;
+const canPlay=k=>{const c=k[0],n=+k.slice(1);if(c==="m")return n<S.unlocked;if(c==="x")return n<S.xun&&!!ADV[n];return !!lvOf(k)};
+const fmtDate=d=>{try{return new Date(d+"T12:00:00").toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"})}catch(e){return d}};
+const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`};
+const lvName=k=>{const L=lvOf(k);if(!L)return k[0]==="d"?"Daily "+k.slice(1):k;return k[0]==="d"?`Daily: ${L.name}`:k[0]==="x"?`${L.tag}: ${L.name}`:`Level ${+k.slice(1)+1}: ${L.name}`};
+const inkOn=h=>{const n=parseInt(h.slice(1),16),r=(n>>16&255)/255,g=(n>>8&255)/255,b=(n&255)/255,f=v=>v<=.03928?v/12.92:((v+.055)/1.055)**2.4;return .2126*f(r)+.7152*f(g)+.0722*f(b)>.25?"#1d1a2e":"#fff"};
+const starStr=n=>"★".repeat(n)+"☆".repeat(3-n);
+function snap(){const o={...S,running:false,prog:{...S.prog}};if(S.prog[S.cur])o.prog[S.cur]={...S.prog[S.cur],elapsed:now()};return o}
+function save(){try{localStorage.setItem("cc-robotlab-v4",JSON.stringify(snap()))}catch(e){}}
+function valid(d){return d&&typeof d.cur==="string"&&d.prog&&typeof d.prog==="object"}
+function load(){try{let d=JSON.parse(localStorage.getItem("cc-robotlab-v4")||"null");if(valid(d))return d;d=JSON.parse(localStorage.getItem("cc-robotlab-v3")||"null");if(valid(d))return d;const o=JSON.parse(localStorage.getItem("cc-robotlab-v2")||"null");if(o&&Array.isArray(o.levels)){const p={};o.levels.forEach((l,i)=>p["m"+i]=l);return {cur:"m"+(o.lv||0),unlocked:o.unlocked||1,sound:o.sound!==false,prog:p}}}catch(e){}return null}
+function beep(ok){if(!S.sound)return;try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();(ok?[523,659,784]:[220,180]).forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type=ok?"triangle":"square";o.frequency.value=f;g.gain.setValueAtTime(.12,actx.currentTime+i*.12);g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+i*.12+.2);o.connect(g).connect(actx.destination);o.start(actx.currentTime+i*.12);o.stop(actx.currentTime+i*.12+.22)})}catch(e){}}
+function party(big){try{if(!window.confetti||matchMedia("(prefers-reduced-motion: reduce)").matches)return;const go=(o)=>window.confetti(Object.assign({particleCount:big?160:90,spread:big?110:75,origin:{y:.6},colors:COLS},o));go({});if(big){setTimeout(()=>go({angle:60,origin:{x:0,y:.7}}),250);setTimeout(()=>go({angle:120,origin:{x:1,y:.7}}),450)}}catch(e){}}
+/*! ZzFXMicro v1.4.0 | MIT License | Copyright (c) 2019 Frank Force | https://github.com/KilledByAPixel/ZzFX */
+let // ZzFXMicro - Zuper Zmall Zound Zynth - v1.4.0 by Frank Force
+zzfxV=.3,               // volume
+zzfxX=null,             // audio context (made on first sound)
+zzfx=                   // play sound
+(p=1,k=.05,b=220,e=0,r=0,t=.1,q=0,D=1,u=0,y=0,v=0,z=0,l=0,E=0,A=0,F=0,c=0,w=1,m=0,B=0
+,N=0)=>{let M=Math,d=2*M.PI,R=44100,G=u*=500*d/R/R,C=b*=(1-k+2*k*M.random(k=[]))*d/R,
+g=0,H=0,a=0,n=1,I=0,J=0,f=0,h=N<0?-1:1,x=d*h*N*2/R,L=M.cos(x),Z=M.sin,K=Z(x)/4,O=1+K,
+X=-2*L/O,Y=(1-K)/O,P=(1+h*L)/2/O,Q=-(h+L)/O,S=P,T=0,U=0,V=0,W=0;e=R*e+9;m*=R;r*=R;t*=
+R;c*=R;y*=500*d/R**3;A*=d/R;v*=d/R;z*=R;l=R*l|0;p*=zzfxV;for(h=e+m+r+t+c|0;a<h;k[a++]
+=f*p)++J%(100*F|0)||(f=q?1<q?2<q?3<q?4<q?(g/d%1<D/2)*2-1:Z(g**3):M.max(M.min(M.tan(g)
+,1),-1):1-(2*g/d%2+2)%2:1-4*M.abs(M.round(g/d)-g/d):Z(g),f=(l?1-B+B*Z(d*a/l):1)*(4<q?
+f:(f<0?-1:1)*M.abs(f)**D)*(a<e?a/e:a<e+m?1-(a-e)/m*(1-w):a<e+m+r?w:a<h-c?(h-a-c)/t*w:
+0),f=c?f/2+(c>a?0:(a<h-c?1:(h-a)/c)*k[a-c|0]/2/p):f,N?f=W=S*T+Q*(T=U)+P*(U=f)-Y*V-X*(
+V=W):0),x=(b+=u+=y)*M.cos(A*H++),g+=x+x*E*(a*a*d%2-1),n&&++n>z&&(b+=v,C+=v,n=0),!l||++I%l
+||(b=C,u=G,n=n||1);X=zzfxX||(zzfxX=new(window.AudioContext||window.webkitAudioContext)),p=X.createBuffer(1,h,R);p.getChannelData(0).set(k);b=X.
+createBufferSource();b.buffer=p;b.connect(X.destination);b.start()}
+
+/* ---------- juice: sounds, buzzes, BOLT reactions, motion ---------- */
+const RM=()=>{try{return matchMedia("(prefers-reduced-motion: reduce)").matches}catch(e){return false}};
+const SFX={tick:[.22,0,1300,0,.01,.03,1],ok:[.55,0,660,0,.05,.18,1,,,,660,.06],bad:[.4,0,170,0,.1,.18,2,,-25],hint:[.25,.1,320,.04,.06,.2,4,,60],count:[.4,0,520,0,.06,.1,1],go:[.55,0,780,0,.12,.3,1,,,,390,.08],badge:[.4,0,1200,0,.05,.35,1,,,,400,.07,.07],star:[.45,0,880,0,.04,.18,1,,,,440,.05],flip:[.2,0,500,0,.02,.06,1,,40]};
+function sfx(n){if(!S.sound)return;try{if(zzfxX&&zzfxX.state==="suspended")zzfxX.resume();zzfx(...SFX[n])}catch(e){}}
+function fanfare(){[523,659,784,1047,784,1047].forEach((f,i)=>setTimeout(()=>{if(S.sound)try{zzfx(.45,0,f,0,i>3?.12:.07,.22,1)}catch(e){}},i*130))}
+let HAP;function hap(){if(HAP!==undefined)return HAP;HAP=null;try{const C=window.Capacitor;if(C&&C.isNativePlatform&&C.isNativePlatform())HAP=(C.Plugins&&C.Plugins.Haptics)||(C.registerPlugin?C.registerPlugin("Haptics"):null)}catch(e){}return HAP}
+function buzz(kind){if(!S.sound)return;try{const H=hap();
+  if(H){if(kind==="bad")H.notification({type:"ERROR"});else if(kind==="win")H.notification({type:"SUCCESS"});else H.impact({style:kind==="ok"?"MEDIUM":"LIGHT"});return}
+  if(navigator.vibrate)navigator.vibrate(kind==="bad"?[40,50,40]:kind==="win"?[30,60,30,60,90]:kind==="ok"?25:10)}catch(e){}}
+function beep(ok){sfx(ok?"ok":"bad")}
+const LINES={ok:["Beep boop, brilliant!","Lock cracked!","You're on fire!","Nailed it!","Click! It's open!","Code-breaker power!","Awesome thinking!"],bad:["Bzzt! Not quite.","Try again, you've got this!","Hmm, check your working.","Nearly! Have another go.","Wrong code, but don't give up!"],hint:["Here's a clue!","Psst, read this!","Hint coming up!"],start:["Let's go!","Codes, here we come!","Timer's running!","Mission start!"],last:["One lock to go!","Last lock, you can do it!"],final:["Unscramble the letters!","Now the secret word!"],win:["WOO HOO!","We did it!","Best team ever!"]};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+let boltT=null,combo=0,lastSolved=-1,typeNext=false,typeTimer=null;
+function say(t){const s=$("say");if(!s||!t)return;s.textContent=t;s.classList.remove("show");void s.offsetWidth;s.classList.add("show");clearTimeout(say.t);say.t=setTimeout(()=>s.classList.remove("show"),2600)}
+function boltDo(cls,line,ms=900){const b=$("boltBox");if(!b)return;b.classList.remove("hop","no","dance");void b.offsetWidth;if(cls)b.classList.add(cls);if(line)say(line);clearTimeout(boltT);boltT=setTimeout(()=>b.classList.remove("hop","no","dance"),ms)}
+function burstAt(el,big){try{if(!window.confetti||RM()||!el)return;const r=el.getBoundingClientRect();if(r.bottom<0||r.top>innerHeight)return;window.confetti({particleCount:big?90:40,spread:70,startVelocity:30,scalar:.85,ticks:110,origin:{x:(r.left+r.width/2)/innerWidth,y:Math.max(.05,(r.top+40)/innerHeight)},colors:COLS})}catch(e){}}
+function flyLetter(fromRect,letter,idx){const to=$("tray")&&$("tray").children[idx];if(!to)return;if(RM()||!fromRect||!to.animate){to.classList.add("pop");return}
+  const b=to.getBoundingClientRect(),f=document.createElement("div");f.className="fly";f.textContent=letter;document.body.appendChild(f);
+  const x0=fromRect.left+fromRect.width/2-24,y0=Math.min(Math.max(fromRect.top+30,10),innerHeight-70),x1=b.left,y1=b.top;f.style.left=x0+"px";f.style.top=y0+"px";
+  const a=f.animate([{transform:"translate(0,0) scale(1.5) rotate(0deg)"},{transform:`translate(${(x1-x0)/2}px,${(y1-y0)/2-90}px) scale(1.9) rotate(200deg)`,offset:.5},{transform:`translate(${x1-x0}px,${y1-y0}px) scale(1) rotate(360deg)`}],{duration:850,easing:"cubic-bezier(.3,.7,.4,1)"});
+  a.onfinish=()=>{f.remove();to.classList.remove("pop");void to.offsetWidth;to.classList.add("pop");sfx("flip")}}
+function floatText(rect,t){if(RM()||!rect)return;const f=document.createElement("div");f.className="floattxt";f.textContent=t;f.style.left=(rect.left+rect.width/2)+"px";f.style.top=Math.min(Math.max(rect.top+20,20),innerHeight-60)+"px";document.body.appendChild(f);setTimeout(()=>f.remove(),1300)}
+function typeStory(text){const el=$("story");clearInterval(typeTimer);if(RM()){el.textContent=text;return}let i=0;el.textContent="";typeTimer=setInterval(()=>{i+=2;el.textContent=text.slice(0,i);if(i>=text.length)clearInterval(typeTimer)},16)}
+let counting=false;
+function startCountdown(){const s=st();if(S.running||s.won||counting)return;if(s.elapsed>0||RM()){start();say(pick(LINES.start));return}
+  counting=true;const o=$("count");o.hidden=false;let n=3,tm=null;const done=()=>{clearTimeout(tm);o.hidden=true;o.onclick=null;counting=false;start();boltDo("hop",pick(LINES.start))};
+  const step=()=>{o.innerHTML=`<span>${n>0?n:"GO!"}</span>`;sfx(n>0?"count":"go");buzz("tap");if(n>0){n--;tm=setTimeout(step,700)}else tm=setTimeout(done,550)};o.onclick=done;step()}
+const DECO={lab:["⚙️","🔩","💡","⚙️","🔧","💡"],daily:["⭐","✨","⭐","🌟","✨","⭐"]};
+function setBand(col,icons){const r=document.documentElement;r.style.setProperty("--band",col);r.style.setProperty("--bandink",inkOn(col));
+  const d=$("deco");const key=icons.join("");if(d.dataset.k===key)return;d.dataset.k=key;d.innerHTML=RM()?"":icons.map((ic,i)=>`<span style="left:${[4,22,41,63,80,92][i]}%;top:${[18,62,8,70,22,55][i]}%;animation-delay:${-i*2.3}s;font-size:${[44,30,52,34,40,28][i]}px">${ic}</span>`).join("")}
+function onLockOk(i,k,form){const s=st(),card=$("lock"+i),rect=card&&card.getBoundingClientRect();if(!s.solved.includes(i))s.solved.push(i);(S.ever[S.cur]||(S.ever[S.cur]={}))[i]=k.type;
+  combo++;lastSolved=i;save();render();sfx("ok");buzz("ok");const left=cur().locks.length-s.solved.length;
+  boltDo("hop",left===0?pick(LINES.final):left===1?pick(LINES.last):pick(LINES.ok));burstAt($("lock"+i));flyLetter(rect,k.r,i);if(combo>=2)floatText(rect,`Combo ×${combo}! 🔥`);
+  if(left===0)setTimeout(()=>{const f=$("final");if(f)f.scrollIntoView({behavior:RM()?"auto":"smooth",block:"center"});setTimeout(()=>$("finalIn").focus({preventScroll:true}),400)},900)}
+function onWrong(cardEl){combo=0;sfx("bad");buzz("bad");boltDo("no",pick(LINES.bad))}
+
+/* ---------- puzzle renderers ---------- */
+const binTable=(vals,rows,label)=>`<div class="bin" style="grid-template-columns:repeat(${vals.length},34px) auto">${vals.map(v=>`<b>${v}</b>`).join("")}<span></span>${rows.map((r,k)=>[...r].map(c=>`<span class="dot${c==="1"?" on":""}"></span>`).join("")+`<span class="skill">${label} ${k+1}</span>`).join("")}</div>`;
+const codeBlock=lines=>`<pre class="code">${lines.map(esc).join("\n")}</pre>`;
+const stripAB=()=>`<div class="strip" aria-label="Alphabet strip">${[...AB].map((c,i)=>`<span title="${i+1}">${c}<br><small>${i+1}</small></span>`).join("")}</div>`;
+function pixGrid(L,k,rows,cols,labelFn,axes){const P=st().pix[k]||[];let h="";
+  if(axes){for(let y=rows;y>=1;y--){h+=`<span class="axis">${y}</span>`;for(let x=1;x<=cols;x++){const id=(rows-y)*cols+(x-1);h+=`<button type="button" data-pk="${k}" data-p="${id}" class="${P.includes(id)?"lit":""}" aria-pressed="${P.includes(id)}" aria-label="Point ${x}, ${y}"></button>`}}h+=`<span></span>`+Array.from({length:cols},(_,i)=>`<span class="axis">${i+1}</span>`).join("");return `<div class="pix" style="grid-template-columns:24px repeat(${cols},34px)">${h}</div>`}
+  for(let id=0;id<rows*cols;id++){h+=`<button type="button" data-pk="${k}" data-p="${id}" class="${P.includes(id)?"lit":""}" aria-pressed="${P.includes(id)}" aria-label="${esc(labelFn(id))}">${esc(labelFn(id,true))}</button>`}
+  return `<div class="pix" style="grid-template-columns:repeat(${cols},34px)">${h}</div>`}
+const SHN={tri:"triangle",sq:"square",cir:"circle",star:"star"};
+const SH={tri:'<polygon points="12,3 22,21 2,21" fill="#ff7a1a" stroke="#1d1a2e" stroke-width="2"/>',sq:'<rect x="3" y="3" width="18" height="18" rx="2" fill="#2f5bea" stroke="#1d1a2e" stroke-width="2"/>',cir:'<circle cx="12" cy="12" r="9.5" fill="#7ccf3f" stroke="#1d1a2e" stroke-width="2"/>',star:'<polygon points="12,2 14.9,8.6 22,9.3 16.6,14 18.2,21 12,17.3 5.8,21 7.4,14 2,9.3 9.1,8.6" fill="#ff5ca8" stroke="#1d1a2e" stroke-width="1.6"/>'};
+const shape=n=>`<svg class="shp" viewBox="0 0 24 24" role="img" aria-label="${SHN[n]}">${SH[n]}</svg>`;
+const pigOf=k=>k<18?[0,k%9,k>=9?1:0]:[1,(k-18)%4,k>=22?1:0];
+function pigSVG(g,i,dot,cls="pig"){let p="",dx=20,dy=20;
+  if(g===0){const r=Math.floor(i/3),c=i%3;if(r>0)p+="M6 6H34";if(r<2)p+="M6 34H34";if(c>0)p+="M6 6V34";if(c<2)p+="M34 6V34"}
+  else{p=["M6 6L20 30L34 6","M34 6L10 20L34 34","M6 34L20 10L34 34","M6 6L30 20L6 34"][i];[dx,dy]=[[20,14],[26,20],[20,26],[14,20]][i]}
+  return `<svg class="${cls}" viewBox="0 0 40 40" aria-hidden="true"><path d="${p}" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>${dot?`<circle cx="${dx}" cy="${dy}" r="3.5" fill="currentColor"/>`:""}</svg>`}
+const mo=s=>s.replace(/\./g,"•").replace(/-/g,"—");
+function flowSVG(d){
+  const box=(x,y,w,h,t,f)=>`<rect x="${x-w/2}" y="${y-h/2}" width="${w}" height="${h}" rx="10" fill="${f}" stroke="#1d1a2e" stroke-width="2"/><text x="${x}" y="${y+5}" text-anchor="middle">${esc(t)}</text>`;
+  const dia=(x,y,w,h,t)=>`<polygon points="${x},${y-h/2} ${x+w/2},${y} ${x},${y+h/2} ${x-w/2},${y}" fill="#ffd23f" stroke="#1d1a2e" stroke-width="2"/><text x="${x}" y="${y+5}" text-anchor="middle">${esc(t)}</text>`;
+  const ar=p=>`<polyline points="${p}" fill="none" stroke="currentColor" stroke-width="2.5" marker-end="url(#ah)"/>`;
+  const lb=(x,y,t)=>`<text class="fl" x="${x}" y="${y}">${t}</text>`;
+  const defs=`<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>`;
+  if(d.mode==="grow"){const op=`n = n × ${d.mul}${d.add?` + ${d.add}`:""}`;
+    return `<svg class="flow" viewBox="0 0 400 230" role="img" aria-label="Flowchart: start with n = ${d.start}. If n is more than ${d.limit}, stop: the code is n. Otherwise ${op} and check again." style="color:var(--ink)">${defs}${box(160,22,210,34,`START: n = ${d.start}`,"#fff")}${ar("160,39 160,60")}${dia(160,100,220,74,`Is n more than ${d.limit}?`)}${ar("270,100 282,100")}${box(338,100,108,34,"STOP: code = n","#c9f2a8")}${lb(268,90,"yes")}${ar("160,137 160,168")}${lb(166,156,"no")}${box(160,186,200,34,op,"#e3eaff")}${ar("60,186 24,186 24,100 48,100")}</svg>`}
+  return `<svg class="flow" viewBox="0 0 400 330" role="img" aria-label="Flowchart: start with n = ${d.start} and steps = 0. If n = 1, stop: the code is steps. If n is even, n = n ÷ 2, otherwise n = n × 3 + 1. Then add 1 to steps and check again." style="color:var(--ink)">${defs}${box(175,20,250,32,`START: n = ${d.start}, steps = 0`,"#fff")}${ar("175,36 175,55")}${dia(175,84,170,56,"Is n = 1?")}${ar("260,84 272,84")}${box(334,84,124,32,"STOP: code = steps","#c9f2a8")}${lb(258,74,"yes")}${ar("175,112 175,130")}${lb(181,126,"no")}${dia(175,158,170,56,"Is n even?")}${ar("90,158 80,158 80,210")}${lb(52,150,"yes")}${box(80,228,130,32,"n = n ÷ 2","#e3eaff")}${ar("260,158 290,158 290,210")}${lb(266,150,"no")}${box(290,228,150,32,"n = n × 3 + 1","#e3eaff")}${ar("80,244 80,290 95,290")}${ar("290,244 290,290 275,290")}${box(185,290,180,32,"steps = steps + 1","#ffe2c4")}${ar("185,306 185,320 14,320 14,84 88,84")}</svg>`}
+function netSVG(d){const n=d.inputs.length,H=40*n+20,x0=50,x1=330,m=d.comps.length;let s=`<svg class="graph" viewBox="0 0 380 ${H}" role="img" aria-label="Sorting network with ${n} wires">`;
+  for(let i=0;i<n;i++){const y=30+i*40;s+=`<line x1="${x0}" y1="${y}" x2="${x1}" y2="${y}" stroke="#2f5bea" stroke-width="4"/><text x="${x0-14}" y="${y+6}" text-anchor="end" class="big">${d.inputs[i]}</text><text x="${x1+12}" y="${y+6}" class="big">?</text>`}
+  d.comps.forEach(([a,b],k)=>{const x=x0+30+k*((x1-x0-60)/Math.max(1,m-1)),ya=30+Math.min(a,b)*40,yb=30+Math.max(a,b)*40;s+=`<line x1="${x}" y1="${ya}" x2="${x}" y2="${yb}" stroke="#1d1a2e" stroke-width="3"/><circle cx="${x}" cy="${ya}" r="6" fill="#ff7a1a" stroke="#1d1a2e" stroke-width="2"/><circle cx="${x}" cy="${yb}" r="6" fill="#ff7a1a" stroke="#1d1a2e" stroke-width="2"/>`});return s+"</svg>"}
+function clockSVG(h){let s=`<svg class="clk" viewBox="0 0 180 180" role="img" aria-label="Clock showing ${h} o'clock"><circle cx="90" cy="90" r="84" fill="var(--card)" stroke="currentColor" stroke-width="4"/>`;for(let i=1;i<=12;i++){const a=i*Math.PI/6;s+=`<text x="${(90+66*Math.sin(a)).toFixed(1)}" y="${(90-66*Math.cos(a)+6).toFixed(1)}" text-anchor="middle">${i}</text>`}const a=h*Math.PI/6;return s+`<line x1="90" y1="90" x2="${(90+46*Math.sin(a)).toFixed(1)}" y2="${(90-46*Math.cos(a)).toFixed(1)}" stroke="#ff7a1a" stroke-width="7" stroke-linecap="round"/><circle cx="90" cy="90" r="7" fill="currentColor"/></svg>`}
+
+const R={
+ binary:(d)=>`<p>Add the values of the lights that are ON to get one digit per row.</p>${binTable([8,4,2,1],d.rows,"Digit")}`,
+ grid:(d)=>`<p>Start on the star. After each instruction, write down the letter you land on.</p><div class="grid5">${d.grid.flat().map(c=>c==="*"?`<span class="st">★</span>`:`<span>${esc(c)}</span>`).join("")}</div><ol class="prog">${d.program.map(([dir,n])=>`<li>${({right:"→",left:"←",up:"↑",down:"↓"})[dir]} ${dir} ${n}</li>`).join("")}</ol>`,
+ cipher:(d)=>`<p>Every letter moved ${d.shift} places forward. Move each one ${d.shift} places back.</p><div class="cipher">${esc(d.enc)}</div>${stripAB()}`,
+ loops:(d)=>`<p>Count every flash. The code is RED, BLUE, GREEN, YELLOW counts in that order.</p>${codeBlock(d.program_lines)}`,
+ robots:(d)=>`<p>${esc(d.intro)}</p><ol class="clues">${d.clues.map(c=>`<li>${esc(c)}</li>`).join("")}</ol>`,
+ pixels:(d,k)=>`<p>Tap every square that has a 1 to light it up and reveal the number.</p>${pixGrid(null,k,5,7,(id,txt)=>txt?d.pixel_rows.join("")[id]:`Pixel ${id+1}, chip says ${d.pixel_rows.join("")[id]}`)}`,
+ binary5:(d)=>`<p>${esc(d.intro)}</p>${binTable([16,8,4,2,1],d.rows,"Letter")}${stripAB()}`,
+ sorter:(d)=>`<p>${esc(d.intro)}</p><div class="chips">${d.items.map(n=>`<span>${n}</span>`).join("")}</div>${codeBlock(d.code)}`,
+ a1z26:(d)=>`<p>${esc(d.intro)}</p><div class="cipher">${d.nums.join(" · ")}</div>${stripAB()}`,
+ sequence:(d)=>`<p>${esc(d.intro)}</p><div class="chips">${d.seq.map(n=>`<span>${n}</span>`).join("")}<span>?</span><span>?</span></div>`,
+ coords:(d,k)=>`<p>${esc(d.intro)}</p><div class="cipher" style="font-size:17px;letter-spacing:.02em">${d.points.map(([x,y])=>`(${x},${y})`).join(" ")}</div>${pixGrid(null,k,5,d.cols||5,null,true)}`,
+ binadd:(d)=>`<p>${esc(d.intro)}</p><pre class="code" style="font-size:26px">  ${d.a}\n+ ${d.b}\n${"-".repeat(d.a.length+2)}\n  ${"?".repeat(d.a.length)}</pre>`,
+ spiral:(d)=>`<p>${esc(d.intro)}</p><div class="grid5">${d.grid.flat().map(c=>c==="*"?`<span class="st">↑</span>`:`<span>${esc(c)}</span>`).join("")}</div><ol class="prog">${d.program.map(p=>`<li class="${p.startsWith("Turn")?"turn":""}">${esc(p)}</li>`).join("")}</ol>`,
+ atbash:(d)=>`<p>${esc(d.intro)}</p><div class="cipher">${esc(d.enc)}</div><div class="strip2"><table><tr>${[...AB].map(c=>`<td>${c}</td>`).join("")}</tr><tr>${[...AB].reverse().map(c=>`<td>${c}</td>`).join("")}</tr></table></div>`,
+ lineup:(d)=>`<p>${esc(d.intro)}</p><ol class="clues">${d.clues.map(c=>`<li>${esc(c)}</li>`).join("")}</ol><div class="chips" style="margin-top:10px">${(d.robots||[1,2,3,4]).map((_,n)=>`<span>${n+1}: ?</span>`).join("")}</div>`,
+ variables:(d)=>`<p>${esc(d.intro)}</p>${codeBlock(d.code)}`,
+ bubble:(d)=>`<p>${esc(d.intro)}</p><div class="chips">${d.list.map(n=>`<span>${n}</span>`).join("")}</div>`,
+ gates:(d)=>`<p>${esc(d.intro)}</p><div class="gates">${Object.entries(d.inputs).map(([k,v])=>`<b>${k} = ${v}</b>`).join("")}</div>${codeBlock(d.gates)}`,
+ caesar5:(d)=>`<p>${esc(d.intro)}</p><div class="cipher">${esc(d.enc)}</div>${stripAB()}`,
+ score:(d)=>`<p>${esc(d.intro)}</p>${codeBlock(d.code)}`,
+ graph:(d)=>{const P=n=>[46+d.nodes[n][0]*96,40+d.nodes[n][1]*84];return `<p>${esc(d.intro)}</p><svg class="graph" viewBox="0 0 380 240" role="img" aria-label="Map of paths">${d.edges.map(([a,b,w])=>{const[x1,y1]=P(a),[x2,y2]=P(b);return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#2f5bea" stroke-width="4"/><text x="${(x1+x2)/2}" y="${(y1+y2)/2+5}" text-anchor="middle">${w}</text>`}).join("")}${Object.keys(d.nodes).map(n=>{const[x,y]=P(n);return `<circle cx="${x}" cy="${y}" r="9" fill="#ff7a1a" stroke="#1d1a2e" stroke-width="3"/><text x="${x}" y="${d.nodes[n][1]===2?y+26:y-15}" text-anchor="middle">${esc(n)}</text>`}).join("")}</svg>`},
+ maze:(d,k)=>{const P=st().pix[k]||[],L={};d.letters.forEach(([r,c,x])=>L[r*d.w+c]=x);const b=o=>o?"1px solid rgba(128,128,150,.18)":"3px solid var(--ink)";let h="";
+   for(let r=0;r<d.h;r++)for(let c=0;c<d.w;c++){const v=parseInt(d.cells[r][c],16),id=r*d.w+c,s0=r===d.start[0]&&c===d.start[1],gl=r===d.goal[0]&&c===d.goal[1];
+     h+=`<button type="button" class="mz${P.includes(id)?" lit":""}" data-pk="${k}" data-p="${id}" aria-pressed="${P.includes(id)}" aria-label="Row ${r+1}, column ${c+1}${s0?", start":gl?", flag":""}${L[id]?", letter "+L[id]:""}" style="border-top:${b(v&1)};border-right:${b(v&2)};border-bottom:${b(v&4)};border-left:${b(v&8)}">${s0?"★":gl?"🏁":esc(L[id]||"")}</button>`}
+   return `<p>${esc(d.intro)}</p><div class="maze" style="grid-template-columns:repeat(${d.w},minmax(0,40px))">${h}</div>`},
+ mastermind:d=>`<p>${esc(d.intro)}</p><div class="mm">${d.guesses.map(([g,b,w])=>`<div class="mmrow">${[...g].map(x=>`<span class="peg">${x}</span>`).join("")}<span class="fb" aria-label="${b} right digit in the right place, ${w} right digit in the wrong place">${"●".repeat(b)}${"○".repeat(w)}${b+w===0?"–":""}</span></div>`).join("")}<div class="mmrow">${Array.from({length:d.len},()=>`<span class="peg q">?</span>`).join("")}</div></div>`,
+ nonogram:(d,k)=>{const P=st().pix[k]||[],W=d.cols.length;let h=`<span></span>`+d.cols.map(c=>`<span class="ncl">${c.join("<br>")}</span>`).join("");
+   d.rows.forEach((rw,r)=>{h+=`<span class="nrl">${rw.join(" ")}</span>`;for(let c=0;c<W;c++){const id=r*W+c;h+=`<button type="button" class="nc${P.includes(id)?" lit":""}" data-pk="${k}" data-p="${id}" aria-pressed="${P.includes(id)}" aria-label="Row ${r+1}, column ${c+1}"></button>`}});
+   return `<p>${esc(d.intro)}</p><div class="nono" style="grid-template-columns:auto repeat(${W},34px)">${h}</div>`},
+ sudoku:(d,k)=>{const C=st().cells[k]||{},SS=new Set(d.stars.map(([r,c])=>r*4+c));let h="";
+   for(let r=0;r<4;r++)for(let c=0;c<4;c++){const id=r*4+c,g=d.grid[r][c],cl=`su${c===1?" br":""}${r===1?" bb":""}`;h+=g!=="."?`<span class="${cl} given">${g}</span>`:`<button type="button" class="${cl}${SS.has(id)?" star":""}" data-ck="${k}" data-c="${id}" aria-label="Row ${r+1}, column ${c+1}${SS.has(id)?", star square":""}">${C[id]||""}</button>`}
+   return `<p>${esc(d.intro)}</p><div class="sudo">${h}</div><p class="skill">Tap an empty square to cycle through 1 to 4.</p>`},
+ morse:d=>`<p>Each letter is a group of dots and dashes. Use the key to decode the word. The code is the word.</p><div class="cipher morse">${d.enc.split(" ").map(x=>`<span>${mo(x)}</span>`).join("")}</div><div class="mkey">${Object.entries(MORSE).map(([l,m])=>`<span><b>${l}</b> ${mo(m)}</span>`).join("")}</div>`,
+ pigpen:d=>`<p>Each symbol stands for a letter. Match each one to the key, and watch out for dots! The code is the word.</p><div class="pigs" role="img" aria-label="${d.syms.length} pigpen symbols">${d.syms.map(s=>pigSVG(s[0],s[1],s[2],"pig big")).join("")}</div><div class="pkey">${[...AB].map((l,k)=>{const p=pigOf(k);return `<span>${pigSVG(p[0],p[1],p[2])}<b>${l}</b></span>`}).join("")}</div>`,
+ balance:d=>`<p>${esc(d.intro)}</p><div class="eqs">${d.eqs.map(([e,t])=>`<div>${e.map(shape).join("<b>+</b>")}<b>=</b><b>${t}</b></div>`).join("")}</div><div class="eqs ask">${d.ask.map(s=>`<div>${shape(s)}<b>= ?</b></div>`).join("")}</div>`,
+ pyramid:d=>{const A=new Set(d.ask.map(([r,i])=>r+"-"+i));return `<p>${esc(d.intro)}</p><div class="pyr">${d.rows.map((row,r)=>`<div>${row.map((v,i)=>`<span class="${A.has(r+"-"+i)?"star":""}">${v===null?(A.has(r+"-"+i)?"★":""):v}</span>`).join("")}</div>`).join("")}</div>`},
+ flowchart:d=>`<p>${esc(d.intro)}</p>${flowSVG(d)}`,
+ parity:d=>`<p>${esc(d.intro)}</p><div class="par" role="img" aria-label="Six by six grid of cards"><i></i>${[1,2,3,4,5,6].map(n=>`<b>${n}</b>`).join("")}${d.grid.map((row,r)=>`<b>${"ABCDEF"[r]}</b>`+[...row].map(c=>`<span class="${c==="1"?"dk":""}"></span>`).join("")).join("")}</div>`,
+ checkdigit:d=>`<p>${esc(d.intro)}</p>${d.codes.map((c,i)=>`<div class="chips cd"><span class="lbl">Parcel ${i+1}</span>${[...c].map(x=>`<span${x==="?"?' class="q"':""}>${x}</span>`).join("")}</div>`).join("")}<div class="chips cd wts"><span class="lbl">Multiply by</span>${[1,2,1,2,1].map(x=>`<span>×${x}</span>`).join("")}</div>`,
+ sortnet:d=>`<p>${esc(d.intro)}</p>${netSVG(d)}`,
+ rle:(d,k)=>`<p>${esc(d.intro)}</p><ol class="rle">${d.rows.map(r=>`<li>${esc(r)}</li>`).join("")}</ol>${pixGrid(null,k,5,7,(id,txt)=>txt?"":`Row ${Math.floor(id/7)+1}, square ${id%7+1}`)}`,
+ stack:d=>`<p>${esc(d.intro)}</p><ol class="prog ops">${d.ops.map(o=>`<li class="${/^(POP|SERVE)/.test(o)?"turn":""}">${esc(o)}</li>`).join("")}</ol>`,
+ wordsearch:(d,k)=>{const P=st().pix[k]||[],C=d.grid[0].length;let h="";d.grid.forEach((row,r)=>[...row].forEach((ch,c)=>{const id=r*C+c;h+=`<button type="button" class="ws${P.includes(id)?" lit":""}" data-pk="${k}" data-p="${id}" aria-pressed="${P.includes(id)}">${esc(ch)}</button>`}));return `<p>${esc(d.intro)}</p><div class="chips">${d.words.map(w=>`<span>${esc(w)}</span>`).join("")}</div><div class="wsg" style="grid-template-columns:repeat(${C},38px)">${h}</div>`},
+ clock:d=>`<p>${esc(d.intro)}</p><div class="clkrow" style="color:var(--ink)">${clockSVG(d.start)}<ol class="prog">${d.steps.map(([o,n])=>`<li>${o==="+"?"+":"−"} ${n} hours</li>`).join("")}</ol></div>`,
+ halving:(d,k)=>`<p>${esc(d.intro)}</p>${pixGrid(null,k,Math.ceil((d.hi-d.lo+1)/8),8,(id,txt)=>{const n=d.lo+id;return n>d.hi?"":txt?String(n):`Number ${n}`})}<p class="skill">Tap numbers to cross them out as you rule them out.</p>`
+};
+
+/* ---------- stars, records, badges ---------- */
+function hintsUsed(s){return s.hints.reduce((a,b)=>a+b,0)+s.fhint}
+function starsFor(L,s){const h=hintsUsed(s);if(h===0&&s.elapsed<=L.limit*60*.6)return 3;if(s.elapsed<=L.limit*60)return 2;return 1}
+function stats(){const B=S.best,K=Object.keys(B),x={};
+  x.m0=!!B.m0;x.mainWon=K.filter(k=>k[0]==="m").length;x.advWon=K.filter(k=>k[0]==="x").length;x.total=K.length;
+  const dd=K.filter(k=>k[0]==="d").map(k=>k.slice(1)).sort();x.daily=dd.length;let best=0,run=0,prev=null;
+  dd.forEach(d=>{const t=Date.parse(d+"T12:00:00Z");run=prev!==null&&Math.round((t-prev)/864e5)===1?run+1:1;prev=t;best=Math.max(best,run)});x.streak=best;
+  x.stars=K.reduce((a,k)=>a+(B[k].st||0),0);x.three=K.filter(k=>B[k].st===3).length;x.noh=K.filter(k=>B[k].nh).length;x.nom=K.filter(k=>B[k].nm).length;
+  x.fast=Math.min(Infinity,...K.map(k=>B[k].t));x.fast5=Math.min(Infinity,...K.filter(k=>(B[k].n5)).map(k=>B[k].t));
+  x.world=WORLDS.map((w,wi)=>Array.from({length:10},(_,i)=>B["x"+(wi*10+i)]?1:0).reduce((a,b)=>a+b,0));
+  x.cats={};Object.values(S.ever).forEach(o=>Object.values(o).forEach(t=>{const c=TYPECAT[t];if(c)x.cats[c]=(x.cats[c]||0)+1}));x.f=S.f||{};return x}
+const WB=["Jungle Hero","Ocean Explorer","Dino Tamer","Sky Captain","Ice Adventurer","Pyramid Pro","Music Maestro","Lava Legend","Space Commander","Mega Builder"];
+function badgeList(){return [
+ {id:"reboot",i:"🤖",n:"Rebooted!",d:"Beat Level 1 and reboot BOLT.",p:x=>[x.m0?1:0,1]},
+ {id:"lab",i:"🎓",n:"Lab Graduate",d:"Beat all 4 Robot Lab levels.",p:x=>[x.mainWon,4]},
+ ...WORLDS.map((w,i)=>({id:"w"+i,i:w.icon,n:WB[i]||w.name,d:`Finish all 10 levels in ${w.name}.`,p:x=>[x.world[i]||0,10]})),
+ {id:"lv10",i:"🚶",n:"Getting Going",d:"Finish 10 levels of any kind.",p:x=>[x.total,10]},
+ {id:"lv25",i:"🏃",n:"Quarter Way",d:"Finish 25 levels of any kind.",p:x=>[x.total,25]},
+ {id:"lv50",i:"🚴",n:"Half Century",d:"Finish 50 levels of any kind.",p:x=>[x.total,50]},
+ {id:"lv100",i:"💯",n:"Centurion",d:"Finish all 100 adventure levels.",p:x=>[x.advWon,100]},
+ {id:"s10",i:"⭐",n:"Star Collector",d:"Collect 10 stars.",p:x=>[x.stars,10]},
+ {id:"s50",i:"🌟",n:"Shining Star",d:"Collect 50 stars.",p:x=>[x.stars,50]},
+ {id:"s150",i:"💫",n:"Superstar",d:"Collect 150 stars.",p:x=>[x.stars,150]},
+ {id:"t25",i:"🏅",n:"Three-Star Hero",d:"Get 3 stars on 25 levels.",p:x=>[x.three,25]},
+ {id:"speed",i:"⚡",n:"Speedy BOLT",d:"Finish a level in under 5 minutes.",p:x=>[x.fast<300?1:0,1]},
+ {id:"light",i:"🌩️",n:"Lightning",d:"Finish a level with 5 or more locks in under 8 minutes.",p:x=>[x.fast5<480?1:0,1]},
+ {id:"nohint",i:"🧠",n:"No Help Needed",d:"Finish a level without using a single hint.",p:x=>[Math.min(x.noh,1),1]},
+ {id:"brain",i:"🦉",n:"Brainiac",d:"Finish 10 levels without hints.",p:x=>[x.noh,10]},
+ {id:"bull",i:"🎯",n:"Bullseye",d:"Finish a level without one wrong code.",p:x=>[Math.min(x.nom,1),1]},
+ {id:"c_ci",i:"🕵️",n:"Cipher Sleuth",d:"Crack 20 cipher locks.",p:x=>[x.cats.Ciphers||0,20]},
+ {id:"c_bi",i:"💡",n:"Binary Boss",d:"Crack 15 binary locks.",p:x=>[x.cats.Binary||0,15]},
+ {id:"c_lo",i:"🧩",n:"Logic Legend",d:"Crack 20 logic locks.",p:x=>[x.cats.Logic||0,20]},
+ {id:"c_ma",i:"🗺️",n:"Map Master",d:"Crack 15 map and maze locks.",p:x=>[x.cats["Maps and mazes"]||0,15]},
+ {id:"c_al",i:"⚙️",n:"Algorithm Ace",d:"Crack 25 algorithm locks.",p:x=>[x.cats.Algorithms||0,25]},
+ {id:"c_pa",i:"🔢",n:"Pattern Pro",d:"Crack 15 pattern and word locks.",p:x=>[x.cats["Patterns and words"]||0,15]},
+ {id:"d1",i:"☀️",n:"Early Bird",d:"Finish a daily challenge.",p:x=>[Math.min(x.daily,1),1]},
+ {id:"d3",i:"🔥",n:"On Fire",d:"Finish daily challenges 3 days in a row.",p:x=>[Math.min(x.streak,3),3]},
+ {id:"d7",i:"🏆",n:"Week Warrior",d:"Finish daily challenges 7 days in a row.",p:x=>[Math.min(x.streak,7),7]},
+ {id:"d10",i:"📅",n:"Regular",d:"Finish 10 daily challenges.",p:x=>[x.daily,10]},
+ {id:"never",i:"💪",n:"Never Give Up",d:"Finish a level after the timer has run out.",p:x=>[x.f.comeback?1:0,1]},
+ {id:"record",i:"🔁",n:"Record Breaker",d:"Replay a level and beat your best time.",p:x=>[x.f.record?1:0,1]},
+ {id:"fame",i:"📝",n:"Hall of Fame",d:"Put your name on a leaderboard.",p:x=>[x.f.hall?1:0,1]}]}
+function checkBadges(){const x=stats(),out=[];badgeList().forEach(b=>{const[h,n]=b.p(x);if(h>=n&&!S.badges[b.id]){S.badges[b.id]=today();out.push(b)}});return out}
+function totalStars(){return Object.values(S.best).reduce((a,b)=>a+(b.st||0),0)}
+
+/* ---------- leaderboard ---------- */
+let DB=null,UID=null,OWNER=false,SHARED=[],shareState="off";
+const BAD=/\b(poo+|butt|stupid|idiot|dumb|hate|kill|sex|fart)\b/i;
+const cleanName=n=>String(n||"").replace(/[^A-Za-z0-9 '\-]/g,"").replace(/\s+/g," ").trim().slice(0,12);
+const okEntry=e=>e&&typeof e==="object"&&typeof e.k==="string"&&/^[mxd][0-9-]{1,10}$/.test(e.k)&&typeof e.n==="string"&&e.n.length>0&&e.n.length<=12&&typeof e.t==="number"&&e.t>0&&e.t<864000&&[1,2,3].includes(e.s)&&typeof e.id==="string";
+function allEntries(){const seen=new Set(),out=[];SHARED.forEach(e=>{if(!seen.has(e.id)){seen.add(e.id);out.push(e)}});(S.board||[]).forEach(e=>{if(okEntry(e)&&!seen.has(e.id)){seen.add(e.id);out.push({...e,local:true})}});return out}
+function boardFor(k){const best={};allEntries().filter(e=>e.k===k).forEach(e=>{const key=cleanName(e.n).toLowerCase();if(!best[key]||e.t<best[key].t)best[key]=e});return Object.values(best).sort((a,b)=>a.t-b.t||b.s-a.s)}
+async function initDB(){if(APP)return;try{const use=window.claude&&window.claude.use;if(typeof use!=="function")return;const db=await use("db");if(!db)return;DB=db;const u=await use("user");if(u){UID=await u.id();OWNER=await u.isOwner()}
+  shareState="loading";renderBoardBits();const tm=setTimeout(()=>{if(shareState==="loading"){shareState="slow";renderBoardBits()}},10000);
+  db.collection("board").onSnapshot(snap=>{clearTimeout(tm);const out=[];snap.docs.forEach(d=>{const b=d.data();if(b&&Array.isArray(b.e))b.e.forEach(e=>{if(okEntry(e))out.push({k:e.k,n:cleanName(e.n),t:e.t,s:e.s,at:String(e.at||"").slice(0,10),id:e.id,u:d.id})})});SHARED=out;if(!snap.metadata||!snap.metadata.fromCache||shareState!=="live")shareState=snap.metadata&&snap.metadata.fromCache?"cache":"live";renderBoardBits()},()=>{clearTimeout(tm);shareState="error";renderBoardBits()})}catch(e){}}
+let writing=Promise.resolve();
+function pushShared(entry){if(!DB||!UID||shareState==="readonly")return Promise.resolve(false);writing=writing.then(async()=>{try{const ref=DB.doc("board/"+UID);const cur=await ref.get();let arr=cur.exists&&cur.data()&&Array.isArray(cur.data().e)?cur.data().e.filter(okEntry).map(e=>({...e})):[];arr.push(entry);if(arr.length>300)arr=arr.sort((a,b)=>a.t-b.t).slice(0,300);await ref.set({e:arr});return true}catch(e){if(e&&e.code==="invalid_argument")shareState="readonly";return false}});return writing}
+async function removeEntry(id,u){S.board=(S.board||[]).filter(e=>e.id!==id);save();if(DB&&u&&(u===UID||OWNER)){try{const ref=DB.doc("board/"+u),cur=await ref.get();if(cur.exists){const arr=(cur.data().e||[]).filter(e=>okEntry(e)&&e.id!==id).map(e=>({...e}));await ref.set({e:arr})}}catch(e){}}SHARED=SHARED.filter(e=>e.id!==id);renderBoardBits()}
+function shareNote(){return {off:"These names are saved on this device only.",loading:"Loading the shared leaderboard…",slow:"The shared leaderboard can't be reached right now. Showing names saved on this device.",live:"Shared leaderboard: everyone who can open this game sees these names.",cache:"Shared leaderboard (may be a little out of date).",error:"The shared leaderboard isn't available here. Showing names saved on this device.",readonly:"You can see the shared leaderboard, but names you add are saved on this device only."}[shareState]||""}
+function boardTable(rows,mineId){if(!rows.length)return `<p class="note">No names yet. Finish this level to be the first!</p>`;return `<table class="rec"><thead><tr><th>#</th><th>Name</th><th>Time</th><th>Stars</th><th>Date</th></tr></thead><tbody>${rows.slice(0,10).map((e,i)=>`<tr${e.id===mineId?' style="background:var(--limebg)"':""}><td class="n">${["🥇","🥈","🥉"][i]||i+1}</td><td>${esc(e.n)}</td><td class="n">${fmt(e.t)}</td><td style="color:#e0a800">${starStr(e.s)}</td><td class="note">${esc(e.at||"")}</td></tr>`).join("")}</tbody></table>`}
+function renderBoardBits(){renderMini();if(S.view==="lb")renderLB();if(grownOK)renderGrownBoard()}
+function renderMini(){const rows=boardFor(S.cur).slice(0,3);$("mini").innerHTML=rows.length?`<b>🥇 Fastest on this level:</b> ${rows.map((e,i)=>`${i+1}. ${esc(e.n)} <b>${fmt(e.t)}</b>`).join(" &nbsp;·&nbsp; ")} &nbsp;<button type="button" class="quiet" data-view="lb">See all</button>`:`<b>🥇 Leaderboard:</b> no names yet on this level. Finish it to be the first!`}
+
+/* ---------- play view ---------- */
+let tileI=0,nextUp=null;
+function tile(k,label,title,extra=""){const p=S.best[k],open=canPlay(k),c=S.cur===k;return `<button type="button" style="--i:${tileI++}" class="tl${p?" won":""}${c?" cur":""}${k===nextUp?" next":""}${extra}" data-k="${k}" ${open?"":"disabled"} title="${esc(title)}" aria-label="${esc(title)}${p?`, ${p.st} stars`:open?"":", locked"}" aria-current="${c}"><b>${open?label:"🔒"}</b><i>${p?starStr(p.st):""}</i></button>`}
+function render(){
+  const L=cur(),s=st(),n=L.locks.length,mi=mainIdx(),ai=advIdx(),daily=isDaily(S.cur),W=ai>=0?WORLDS[L.w]:null;
+  const today0=DAILY[0];
+  if(W){$("map").style.display="block";$("map").innerHTML=`<div class="wrow"><span class="wname">${W.icon} ${esc(W.name)}</span>${Array.from({length:10},(_,i)=>{const k="x"+(L.w*10+i);return tile(k,i+1,lvName(k))}).join("")}<button type="button" class="quiet" data-view="map">All worlds</button></div>`;$("past").innerHTML=""}
+  else{$("map").style.display="";
+  $("map").innerHTML=LV.map((l,i)=>{const p=S.best["m"+i];return `<button type="button" class="lv${S.cur==="m"+i?" cur":""}${p?" won":""}" data-k="m${i}" ${i>=S.unlocked?"disabled":""} aria-current="${S.cur==="m"+i}"><span class="n">${p?"✓":i>=S.unlocked?"🔒":i+1}</span><div><b>${esc(l.name)}</b><span>${i>=S.unlocked?"Locked":p?starStr(p.st):l.locks.length+" locks"}</span></div></button>`}).join("")+
+    (today0?(()=>{const k="d"+today0.date,p=S.best[k];return `<button type="button" class="lv daily${S.cur===k?" cur":""}${p?" won":""}" data-k="${k}" aria-current="${S.cur===k}"><span class="n">${p?"✓":"★"}</span><div><b>Daily challenge</b><span>${esc(fmtDate(today0.date))}${S.prog[k]?"":" · New!"}</span></div></button>`})():"")+
+    (ADV.length&&S.xun?`<button type="button" class="lv" data-view="map" style="background:#fff8d6"><span class="n">🗺️</span><div><b>Adventure worlds</b><span>${Object.keys(S.best).filter(k=>k[0]==="x").length} of 100 done</span></div></button>`:"");
+  const past=DAILY.slice(1,8);
+  $("past").innerHTML=past.length?`<span>Earlier challenges:</span>`+past.map(d=>{const k="d"+d.date,p=S.best[k];return `<button type="button" class="chip${S.cur===k?" cur":""}" data-k="${k}">${p?"✓ ":""}${esc(fmtDate(d.date))}</button>`}).join(""):""}
+  setBand(daily?"#ff5ca8":W?W.colour:"#ff7a1a",daily?DECO.daily:W?Array(6).fill(W.icon):DECO.lab);
+  $("tag").textContent=daily?`Daily challenge · ${fmtDate(L.date)}`:W?`${L.tag} · ${W.name}`:`${L.tag} of ${LV.length}`;$("title").textContent=L.name;if(typeNext){typeNext=false;typeStory(L.story)}else if(!typeTimer||$("story").textContent.length>=L.story.length){clearInterval(typeTimer);typeTimer=null;$("story").textContent=L.story}
+  $("locksTitle").textContent=`The ${["","","","three","four","five","six"][n]||n} locks`;
+  $("lede").textContent=APP&&mi>=0?"Open each puzzle, type the code and press Unlock. Stuck? Each lock has two hints. Collect every letter, then unscramble them to open the final lock.":mi===0?"Solve each puzzle from your printed kit, or open it on screen. Type the code and press Unlock. Stuck? Each lock has two hints.":daily?"Today's challenge: open each puzzle, type the code and press Unlock. A brand-new challenge arrives every morning.":W?`Open each puzzle, type the code and press Unlock. Each lock has two hints. Finish with no hints in under ${Math.round(L.limit*.6)} minutes for 3 stars.`:"Bonus level: open each puzzle on screen. Type the code and press Unlock. Each lock has two hints.";
+  $("locks").innerHTML=L.locks.map((k,i)=>{const done=s.solved.includes(i);return `<article class="lock${done?" done":""}${done&&i===lastSolved?" fresh":""}${!done&&k.type==="flowchart"?" wide":""}" id="lock${i}">
+    <div class="lhead"><span class="num">${done?"✓":i+1}</span><div><h3>${esc(k.t)}</h3><div class="skill">${esc(k.s)}${k.kit&&mi===0&&!APP?` · kit page ${k.kit}`:""}</div></div></div>
+    ${done?`<div class="msg good">Unlocked! You found the letter <b class="code" style="font-size:22px">${esc(k.r)}</b></div>`:
+    `<details class="puz"${mi!==0||APP?" open":""}><summary>${mi!==0||APP?"The puzzle":"Show the puzzle on screen"}</summary><div class="pz">${R[k.type]?R[k.type](k.d,i):"<p>This puzzle needs a newer version of the game. Try refreshing the page.</p>"}</div></details>
+    <form class="row" data-i="${i}" autocomplete="off"><label for="in${i}" class="skill" style="flex-basis:100%">Code for lock ${i+1}</label><input type="text" id="in${i}" maxlength="${(k.max||10)+3}"><button class="go" type="submit">Unlock</button><button type="button" data-hint="${i}">Hint${s.hints[i]?` (${s.hints[i]}/2)`:""}</button></form>
+    <div class="msg" id="msg${i}" aria-live="polite"></div>
+    ${k.hints.slice(0,s.hints[i]).map(h=>`<div class="hint">${esc(h)}</div>`).join("")}`}
+  </article>`}).join("");
+  const letters=L.locks.map((k,i)=>s.solved.includes(i)?k.r:"");
+  $("tray").innerHTML=letters.map(l=>`<span class="tile${l?" on":""}">${esc(l||"?")}</span>`).join("");
+  $("lights").innerHTML=L.locks.map((k,i)=>{const on=s.solved.includes(i),x=158+(i%3)*42,y=250+Math.floor(i/3)*34;return `<circle cx="${x}" cy="${y}" r="13" fill="${on?COLS[i%COLS.length]:"#4a4270"}" stroke="#1d1a2e" stroke-width="3"/>`}).join("");
+  $("ant").setAttribute("fill",daily?"#ff5ca8":W?W.colour:ANT[mi%ANT.length]);
+  const won=Object.keys(S.best).length;
+  $("badge").innerHTML=won?`<circle cx="268" cy="214" r="22" fill="#ffd23f" stroke="#1d1a2e" stroke-width="4"/><text x="268" y="222" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="${won>99?14:won>9?18:22}" fill="#1d1a2e">${won}</text>`:"";
+  const scr=$("scrText");
+  if(s.won){scr.textContent=mi===LV.length-1||ai===99?"GENIUS!":"HELLO!";scr.setAttribute("fill","#9be36a");scr.setAttribute("font-size","34")}
+  else if(s.solved.length){scr.textContent=letters.map(l=>l||"_").join("");scr.setAttribute("fill","#ffd23f");scr.setAttribute("font-size",n>5?"30":"34")}
+  else{scr.textContent=daily?"NEW DAY":W?W.screen:(["ERROR","MEMORY?","SIGNAL?","UPGRADE"][mi]||"READY");scr.setAttribute("fill",mi===0?"#ff5c5c":"#4fc3ff");scr.setAttribute("font-size",mi===0?"34":"28")}
+  const open=s.solved.length===n;
+  $("final").setAttribute("aria-disabled",open?"false":"true");$("final").classList.toggle("open",open);
+  $("finalTitle").textContent=L.final.title;
+  $("finalPrompt").textContent=open?`Your letters: ${letters.join(" ")}. ${L.final.clue}`:`Opens when all ${n} letters are collected. ${L.final.clue}`;
+  $("finalGo").textContent=L.final.button;
+  $("finalHint").textContent=s.fhint?`Hint (${s.fhint}/2)`:"Hint";
+  const fm=$("finalMsg");
+  if(s.won){fm.className="msg good";fm.textContent=L.final.done}else{fm.className="msg";fm.textContent=s.fhint?L.final.hints.slice(0,s.fhint).join(" "):""}
+  $("soundBtn").textContent=S.sound?"Sound on":"Sound off";$("soundBtn").setAttribute("aria-pressed",S.sound?"true":"false");
+  $("starCount").textContent=`★ ${totalStars()}`;
+  renderMini();clock();
+}
+function now(){const s=st();return S.running?s.elapsed+(Date.now()-t0)/1000:s.elapsed}
+function fmt(sec){sec=Math.max(0,Math.floor(sec));return `${String(Math.floor(sec/60)).padStart(2,"0")}:${String(sec%60).padStart(2,"0")}`}
+function clock(){const s=st(),lim=cur().limit*60,e=now(),left=lim-e,el=$("time");
+  if(left>=0){el.textContent=fmt(left);el.classList.remove("over")}else{el.textContent="+"+fmt(-left);el.classList.add("over")}
+  el.classList.toggle("warn",S.running&&left>=0&&left<60);
+  const b=S.best[S.cur];
+  $("clockNote").textContent=s.won?`Solved in ${fmt(e)}`:S.running?(left>=0?"Time left":"Overtime, keep going!"):(s.elapsed?"Paused":`${cur().limit} minutes on the clock${b?` · best ${fmt(b.t)}`:""}`);
+  $("startBtn").hidden=S.running||s.won;$("startBtn").textContent=s.elapsed?"Resume":"Start the mission";$("pauseBtn").hidden=!S.running;$("replayBtn").hidden=!s.won}
+function start(){if(S.running||st().won)return;S.running=true;t0=Date.now();clearInterval(tick);tick=setInterval(clock,500);save();clock()}
+function pause(){if(!S.running)return;st().elapsed=now();S.running=false;clearInterval(tick);save();clock()}
+function goLevel(k){if(!lvOf(k)||!canPlay(k))return;sfx("tick");if(k!==S.cur){pause();S.cur=k;savedCur=null;$("finalIn").value="";combo=0;lastSolved=-1;typeNext=true}show("play");save();window.scrollTo({top:0,behavior:"smooth"})}
+function nextKey(k){const c=k[0],n=+k.slice(1);if(c==="m")return n<LV.length-1?"m"+(n+1):(ADV.length?"x0":null);if(c==="x")return n<ADV.length-1?"x"+(n+1):null;return null}
+
+/* ---------- views ---------- */
+function show(v){S.view=v;["play","map","ach","lb"].forEach(x=>{$(x+"View").hidden=x!==v});$("playHead").hidden=v!=="play";$("viewHead").hidden=v==="play";
+  document.querySelectorAll(".topnav [data-view]").forEach(b=>b.setAttribute("aria-current",String(b.dataset.view===v)));
+  const T={map:["Adventure map","The Robot Lab, the daily challenge and 10 worlds with 100 levels to explore."],ach:["Badges and records","Your stars, badges and fastest times. Saved in this browser."],lb:["Leaderboard","The fastest code-breakers on every level."]};
+  if(v!=="play"){$("viewTitle").textContent=T[v][0];$("viewSub").textContent=T[v][1]}
+  if(v!=="play")setBand("#ff7a1a",v==="map"?["🗺️","⭐","🌿","🚀","🌊","🦖"]:v==="ach"?["🏆","⭐","🏅","🎯","⚡","💡"]:["🥇","⭐","🥈","⏱️","🥉","✨"]);
+  if(v==="play")render();if(v==="map")renderMap();if(v==="ach")renderAch();if(v==="lb")renderLB();$("starCount").textContent=`★ ${totalStars()}`;save()}
+function renderMap(){tileI=0;nextUp=[...LV.map((l,i)=>"m"+i),...ADV.map((l,i)=>"x"+i)].find(k=>canPlay(k)&&!S.best[k])||null;const lab=LV.map((l,i)=>tile("m"+i,i+1,lvName("m"+i))).join(""),t0d=DAILY[0];
+  let h=`<div class="worlds"><section class="wcard lab"><div class="whead" style="background:#c4520c"><span class="wi">🤖</span><div><h3>Robot Lab</h3><p>Where it all began: reboot BOLT, then give him a brand-new brain.</p></div><span class="wp">${LV.filter((l,i)=>S.best["m"+i]).length}/4</span></div><div class="tiles">${lab}${t0d?tile("d"+t0d.date,"★",`Daily challenge, ${fmtDate(t0d.date)}`," daily"):""}${DAILY.slice(1,8).map(d=>tile("d"+d.date,fmtDate(d.date).split(" ").slice(1).join(" "),`Daily challenge, ${fmtDate(d.date)}`," daily")).join("")}</div><p class="wnote">Pink tiles are daily challenges. A new one arrives every morning.</p></section>`;
+  if(!WORLDS.length)h+=`<section class="wcard"><p class="wnote" style="padding:14px">Loading the adventure worlds…</p></section>`;
+  WORLDS.forEach((w,wi)=>{tileI=Math.min(wi,4)*2;const ks=Array.from({length:10},(_,i)=>"x"+(wi*10+i)),done=ks.filter(k=>S.best[k]).length,stars=ks.reduce((a,k)=>a+(S.best[k]?S.best[k].st:0),0),locked=!canPlay(ks[0]);
+    h+=`<section class="wcard${locked?" locked":""}"><div class="whead" style="background:${w.colour};color:${inkOn(w.colour)}"><span class="wi">${w.icon}</span><div><h3>World ${wi+1}: ${esc(w.name)}</h3><p>${esc(w.blurb)}</p></div><span class="wp">${done}/10<br>★ ${stars}/30</span></div><div class="tiles">${ks.map((k,i)=>tile(k,i+1,lvName(k))).join("")}</div>${locked?`<p class="wnote">${wi===0?"Opens when you beat Level 1 of the Robot Lab.":`Opens when you finish World ${wi}.`}</p>`:""}</section>`});
+  $("mapBody").innerHTML=h+`</div>${APP?"":`<p class="note" style="margin-top:18px">Every level also comes as a printable pack. Ask a grown-up for the World packs.</p>`}`}
+function renderAch(){const x=stats(),bl=badgeList(),got=bl.filter(b=>S.badges[b.id]).length,B=S.best,K=Object.keys(B);
+  const fastK=K.filter(k=>lvOf(k)||k[0]==="d").sort((a,b)=>B[a].t-B[b].t);
+  let h=`<div class="stats"><div class="stat"><b>${K.length}</b><span>levels finished</span></div><div class="stat"><b>★ ${x.stars}</b><span>stars of ${(LV.length+100)*3}</span></div><div class="stat"><b>${got}/${bl.length}</b><span>badges earned</span></div><div class="stat"><b>${isFinite(x.fast)?fmt(x.fast):"--:--"}</b><span>fastest level</span></div><div class="stat"><b>${x.streak}</b><span>best daily streak</span></div><div class="stat"><b>${Math.floor((S.f.played||0)/3600)}h ${Math.floor((S.f.played||0)%3600/60)}m</b><span>time spent solving</span></div></div>`;
+  h+=`<h2>Badges</h2><p class="lede">Earn badges by finishing levels, collecting stars, cracking lots of one kind of puzzle and playing the daily challenge.</p><div class="badges">${bl.map(b=>{const[hv,n]=b.p(x),on=!!S.badges[b.id];return `<div class="bdg ${on?"on":"off"}"><span class="ic" aria-hidden="true">${b.i}</span><b>${esc(b.n)}</b><small>${on?`Earned ${esc(S.badges[b.id])}`:esc(b.d)}</small>${on?"":`<span class="bar" title="${Math.min(hv,n)} of ${n}"><i style="width:${Math.round(Math.min(hv,n)/n*100)}%"></i></span>`}</div>`}).join("")}</div>`;
+  h+=`<h2>Fastest times</h2>${fastK.length?`<table class="rec"><thead><tr><th>#</th><th>Level</th><th>Best time</th><th>Stars</th></tr></thead><tbody>${fastK.slice(0,10).map((k,i)=>`<tr><td class="n">${i+1}</td><td>${esc(lvName(k))}</td><td class="n">${fmt(B[k].t)}</td><td style="color:#e0a800">${starStr(B[k].st)}</td></tr>`).join("")}</tbody></table>`:`<p class="note">Finish a level to set your first record.</p>`}`;
+  const tabs=[["m","Robot Lab"],["d","Daily"],...WORLDS.map((w,i)=>["w"+i,`${w.icon} ${w.name}`])];
+  const keys=recTab==="m"?LV.map((l,i)=>"m"+i):recTab==="d"?K.filter(k=>k[0]==="d").sort().reverse():Array.from({length:10},(_,i)=>"x"+(+recTab.slice(1)*10+i));
+  h+=`<h2>Level records</h2><div class="chiprow">${tabs.map(([id,l])=>`<button type="button" data-rec="${id}" aria-pressed="${recTab===id}">${esc(l)}</button>`).join("")}</div>
+    <table class="rec"><thead><tr><th>Level</th><th>Best time</th><th>Stars</th><th>Fewest hints</th><th>Times finished</th></tr></thead><tbody>${keys.map(k=>{const b=B[k];return `<tr><td>${esc(lvName(k))}</td><td class="n">${b?fmt(b.t):"–"}</td><td style="color:#e0a800">${b?starStr(b.st):""}</td><td>${b?b.h:"–"}</td><td>${b?b.c||1:0}</td></tr>`}).join("")||`<tr><td colspan="5" class="note">Nothing here yet.</td></tr>`}</tbody></table>
+    <p class="note">How stars work: ★ finish the level. ★★ finish before the timer runs out. ★★★ finish with no hints in 60% of the time (for example, under 15 minutes on a 25-minute level).</p>`;
+  $("achBody").innerHTML=h}
+let lbSel=null;
+function renderLB(){const sel=lbSel||S.cur;const opt=(k)=>`<option value="${k}"${k===sel?" selected":""}>${esc(lvName(k))}</option>`;
+  const groups=`<optgroup label="Robot Lab">${LV.map((l,i)=>opt("m"+i)).join("")}</optgroup>${DAILY.length?`<optgroup label="Daily challenges">${DAILY.slice(0,8).map(d=>opt("d"+d.date)).join("")}</optgroup>`:""}${WORLDS.map((w,wi)=>`<optgroup label="${esc(w.name)}">${Array.from({length:10},(_,i)=>opt("x"+(wi*10+i))).join("")}</optgroup>`).join("")}`;
+  const agg={};allEntries().forEach(e=>{const key=cleanName(e.n).toLowerCase();const a=agg[key]||(agg[key]={n:e.n,lv:{},});a.lv[e.k]=Math.max(a.lv[e.k]||0,e.s)});
+  const top=Object.values(agg).map(a=>({n:a.n,l:Object.keys(a.lv).length,s:Object.values(a.lv).reduce((x,y)=>x+y,0)})).sort((a,b)=>b.l-a.l||b.s-a.s).slice(0,10);
+  $("lbBody").innerHTML=`<div class="row" style="align-items:center;margin-bottom:8px"><label for="lbPick" class="skill" style="flex-basis:100%">Choose a level</label><select id="lbPick">${groups}</select></div><p class="note">${esc(shareNote())}</p>${boardTable(boardFor(sel),lastWin&&lastWin.id)}
+   <h2>Top explorers</h2><p class="lede">Most levels on the leaderboard, then most stars.</p>${top.length?`<table class="rec"><thead><tr><th>#</th><th>Name</th><th>Levels</th><th>Stars</th></tr></thead><tbody>${top.map((a,i)=>`<tr><td class="n">${["🥇","🥈","🥉"][i]||i+1}</td><td>${esc(a.n)}</td><td class="n">${a.l}</td><td class="n">★ ${a.s}</td></tr>`).join("")}</tbody></table>`:`<p class="note">No names yet.</p>`}
+   <p class="note">To get on a leaderboard, finish a level and type your nickname when the "you did it" box pops up. Grown-ups can remove names in the Grown-ups' corner on the Play page.</p>`}
+
+/* ---------- winning ---------- */
+function winLevel(){const L=cur(),s=st(),k=S.cur,mi=mainIdx(),ai=advIdx();s.elapsed=now();S.running=false;clearInterval(tick);s.won=true;
+  const stars=starsFor(L,s),h=hintsUsed(s),t=Math.max(1,Math.round(s.elapsed)),old=S.best[k];
+  const rec=!old||t<old.t;if(old&&t<old.t)S.f.record=1;if(s.elapsed>L.limit*60)S.f.comeback=1;S.f.played=(S.f.played||0)+t;
+  S.best[k]={t:old?Math.min(old.t,t):t,st:Math.max(old?old.st:0,stars),h:old?Math.min(old.h,h):h,nh:(old&&old.nh)||h===0,nm:(old&&old.nm)||s.miss===0,n5:L.locks.length>=5,c:(old?old.c||1:0)+1,at:today()};
+  if(mi>=0&&mi<LV.length-1)S.unlocked=Math.max(S.unlocked,mi+2);if(mi===0)S.xun=Math.max(S.xun,1);if(ai>=0)S.xun=Math.max(S.xun,ai+2);
+  const nb=checkBadges();save();$("finalIn").value="";render();const grand=mi===LV.length-1||ai===99;party(true);if(grand)setTimeout(()=>party(true),900);fanfare();buzz("win");boltDo("dance",pick(LINES.win),4000);
+  stars>0&&[0,1,2].forEach(i=>{if(i<stars)setTimeout(()=>sfx("star"),(RM()?0:300)+i*350)});if(nb.length)setTimeout(()=>sfx("badge"),1400);
+  lastWin={k,t,s:stars,id:null};
+  $("winTitle").textContent=ai===99?"You saved the day!":mi===LV.length-1?"BOLT 2.0 is ready!":L.final.winTitle;
+  $("winStars").innerHTML=[0,1,2].map(i=>`<span class="st${i<stars?" on":""}" style="animation-delay:${.25+i*.35}s">${i<stars?"★":"☆"}</span>`).join("");$("winStars").setAttribute("aria-label",`${stars} out of 3 stars`);
+  $("winText").textContent=`${L.name} complete in ${fmt(t)}${s.elapsed<=L.limit*60?", beating the clock":""}. Hints used: ${h}.${old&&rec?" New personal record!":""}`;
+  $("winBadges").innerHTML=nb.map(b=>`<span>${b.i} New badge: ${esc(b.n)}</span>`).join("");
+  $("lbName").value=S.name||"";$("lbMsg").textContent="";$("lbMsg").className="msg";$("lbForm").hidden=false;$("lbSave").disabled=false;
+  const nk=nextKey(k),NL=nk&&lvOf(nk);
+  $("winNext").textContent=isDaily(k)?"Come back tomorrow morning for a brand-new challenge!":ai===99?"You finished all 100 adventure levels. BOLT and the Mega Machine are ready to help the whole world. You're a true code-breaking hero!":
+    mi===0?`Level 2 is unlocked: ${LV[1].name}. The 10 adventure worlds are open too. Find them on the Map!`:mi===LV.length-1?"You cracked every Robot Lab level. Now explore the adventure worlds on the Map!":
+    ai>=0&&ai%10===9?`World ${L.w+1} complete! Next stop: World ${L.w+2}, ${WORLDS[L.w+1]?WORLDS[L.w+1].name:""}.`:NL?`Next up: ${NL.name}.${NL.teaser?" "+NL.teaser:""}`:"";
+  const next=!!(nk&&canPlay(nk));$("winGo").hidden=!next;$("winGo").textContent=nk&&nk[0]==="x"&&mi>=0?"Go to the worlds":"Next level";$("winClose").textContent=next?"Stay here":"Back to the lab";
+  $("win").classList.add("show");setTimeout(()=>(S.name?$("lbSave"):$("lbName")).focus(),50)}
+
+/* ---------- events ---------- */
+document.addEventListener("submit",ev=>{const f=ev.target;if(f.dataset.i===undefined)return;ev.preventDefault();
+  const i=+f.dataset.i,inp=f.querySelector("input"),m=$("msg"+i),k=cur().locks[i];
+  if(!inp.value.trim()){m.className="msg bad";m.textContent="Type a code first.";return}
+  if(!S.running&&!st().won)start();
+  if(hash(inp.value)===k.h){onLockOk(i,k,f)}
+  else{st().miss++;save();onWrong();m.className="msg bad";m.textContent="BEEP! Wrong code. Check your working and try again.";const c=$("lock"+i);c.classList.remove("shake");void c.offsetWidth;c.classList.add("shake")}});
+$("finalForm").addEventListener("submit",ev=>{ev.preventDefault();const L=cur(),s=st();if(s.solved.length<L.locks.length||s.won)return;
+  if(hash($("finalIn").value)===L.final.h)winLevel();
+  else{s.miss++;save();onWrong();$("finalMsg").className="msg bad";$("finalMsg").textContent="BOLT says: NOT QUITE. Try another order."}});
+$("lbForm").addEventListener("submit",async ev=>{ev.preventDefault();if(!lastWin)return;const n=cleanName($("lbName").value),m=$("lbMsg");
+  if(!n){m.className="msg bad";m.textContent="Type a nickname first (letters and numbers).";return}
+  if(BAD.test(n)){m.className="msg bad";m.textContent="Please choose a friendlier nickname.";return}
+  if(lastWin.id){m.className="msg good";m.textContent="Already added!";return}
+  const e={k:lastWin.k,n,t:lastWin.t,s:lastWin.s,at:today(),id:Date.now().toString(36)+Math.random().toString(36).slice(2,8)};lastWin.id=e.id;
+  S.name=n;S.board=(S.board||[]).concat([e]).slice(-500);S.f.hall=1;const nb=checkBadges();save();$("lbSave").disabled=true;
+  const rank=boardFor(e.k).findIndex(x=>x.id===e.id)+1;m.className="msg good";m.textContent=rank?`Added! You're number ${rank} on this level.`:"Added!";
+  if(nb.length)$("winBadges").innerHTML+=nb.map(b=>`<span>${b.i} New badge: ${esc(b.n)}</span>`).join("");
+  renderBoardBits();const ok=await pushShared(e);if(DB&&!ok&&shareState==="readonly"){m.textContent+=" (Saved on this device only.)"}});
+document.addEventListener("click",ev=>{
+  const vw=ev.target.closest("[data-view]");if(vw){$("win").classList.remove("show");show(vw.dataset.view);window.scrollTo({top:0});return}
+  const lv=ev.target.closest("[data-k]");if(lv&&!lv.disabled){goLevel(lv.dataset.k);return}
+  const rt=ev.target.closest("[data-rec]");if(rt){recTab=rt.dataset.rec;renderAch();return}
+  const rm=ev.target.closest("[data-rm]");if(rm){removeEntry(rm.dataset.rm,rm.dataset.u||null);return}
+  const h=ev.target.closest("[data-hint]");if(h){const i=+h.dataset.hint,s=st();if(s.hints[i]<2){s.hints[i]++;sfx("hint");say(pick(LINES.hint))}save();render();const d=$("lock"+i)&&$("lock"+i).querySelector("details");if(d)d.open=true;return}
+  const ck=ev.target.closest("[data-ck]");if(ck){const k=ck.dataset.ck,id=ck.dataset.c,s=st(),C=s.cells[k]||(s.cells[k]={});const v=(+C[id]||0)+1;if(v>4)delete C[id];else C[id]=v;ck.textContent=C[id]||"";save();return}
+  const p=ev.target.closest("[data-pk]");if(p){const k=p.dataset.pk,id=+p.dataset.p,s=st(),arr=s.pix[k]||(s.pix[k]=[]);const at=arr.indexOf(id);if(at>=0)arr.splice(at,1);else arr.push(id);p.classList.toggle("lit",at<0);p.setAttribute("aria-pressed",String(at<0));save()}});
+document.addEventListener("change",ev=>{if(ev.target.id==="lbPick"){lbSel=ev.target.value;renderLB()}});
+$("finalHint").addEventListener("click",()=>{const s=st();if(s.fhint<2){s.fhint++;sfx("hint");say(pick(LINES.hint))}save();render()});
+$("startBtn").addEventListener("click",startCountdown);$("pauseBtn").addEventListener("click",pause);
+$("replayBtn").addEventListener("click",()=>{S.prog[S.cur]=lvFresh(cur());save();render()});
+$("soundBtn").addEventListener("click",()=>{S.sound=!S.sound;save();render()});
+$("winClose").addEventListener("click",()=>$("win").classList.remove("show"));
+$("winGo").addEventListener("click",()=>{$("win").classList.remove("show");const nk=nextKey(S.cur);if(nk&&nk[0]==="x"&&mainIdx()>=0){show("map");return}if(nk)goLevel(nk)});
+document.addEventListener("keydown",ev=>{if(ev.key==="Escape")$("win").classList.remove("show")});
+let grownOK=false,gateAns=0;
+function newGate(){const a=12+Math.floor(Math.random()*8),b=3+Math.floor(Math.random()*7);gateAns=a*b;const p=$("grown").querySelector("p");p.textContent=`Grown-ups only. To continue, answer this: what is ${a} × ${b}?`;$("grown").querySelector("label").textContent="Answer";$("gIn").value=""}
+const decode=s=>{try{return JSON.parse(atob(s).split("").reverse().join(""))}catch(e){return null}};
+function showAnswers(){const box=$("ans"),A=decode(D.secret)||[],L=cur(),ai=advIdx();
+  const one=(title,locks,a)=>`<h4>${esc(title)}</h4>`+locks.map((k,i)=>`<b>Lock ${i+1}</b><span>${esc(k.t)}: ${esc(a[i]??"")}</span>`).join("")+`<b>Final</b><span>${esc(a[locks.length]??"")}</span>`;
+  box.innerHTML=(ai>=0?one(`This level: ${lvName(S.cur)}`,L.locks,decode(L.secret)||[]):"")+LV.map((l,li)=>one(`${l.tag}: ${l.name}`,l.locks,A[li]||[])).join("")+DAILY.slice(0,8).map(d=>one(`Daily ${fmtDate(d.date)}: ${d.name}`,d.locks,decode(d.secret)||[])).join("")+
+    `<p style="grid-column:1/-1" class="note">${APP?"Adventure-level answers show here for the level you're on.":"Adventure-level answers show here for the level you're on, and in the answer keys at the back of each printable World pack."}</p>`}
+function renderGrownBoard(){const box=$("gBoard"),E=allEntries();box.hidden=false;
+  box.innerHTML=`<h4 style="font:800 17px 'Baloo 2',sans-serif;margin:16px 0 6px">Leaderboard names</h4><p class="note">${esc(shareNote())}${DB&&!OWNER?" Only the person who owns this game can remove other people's names.":""}</p>`+(E.length?`<div class="ans">${E.slice().sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,60).map(e=>`<b>${esc(e.n)}</b><span>${esc(lvName(e.k))} · ${fmt(e.t)} · ${esc(e.at||"")} <button type="button" class="quiet" data-rm="${esc(e.id)}" data-u="${esc(e.u||"")}">Remove</button></span>`).join("")}</div>`:`<p class="note">No names yet.</p>`)}
+$("gForm").addEventListener("submit",ev=>{ev.preventDefault();const box=$("ans");box.hidden=false;
+  if(APP?String($("gIn").value).trim()!==String(gateAns):hash($("gIn").value)!==D.grown){box.textContent=APP?"That's not right. Grown-ups only!":"That's not the grown-up code.";if(APP)newGate();return}
+  grownOK=true;$("unlockAll").hidden=false;showAnswers();renderGrownBoard()});
+$("unlockAll").addEventListener("click",()=>{if(!grownOK)return;S.unlocked=LV.length;S.xun=100;save();render()});
+$("resetBtn").addEventListener("click",()=>{const b=$("resetBtn");if(b.dataset.sure){clearInterval(tick);const keep={board:S.board,name:S.name};S=Object.assign(fresh(),keep);save();b.textContent="Reset the game";delete b.dataset.sure;$("ans").hidden=true;$("gBoard").hidden=true;$("unlockAll").hidden=true;grownOK=false;show("play")}else{b.dataset.sure="1";b.textContent="Tap again to wipe all progress, stars and badges"}});
+
+/* ---------- loading ---------- */
+function okLevel(d){return d&&Array.isArray(d.locks)&&d.locks.length>=3&&d.locks.length<=6&&d.final&&typeof d.final.h==="string"&&d.locks.every(k=>k&&typeof k.h==="string"&&Array.isArray(k.hints)&&k.d)}
+function okDaily(d){return okLevel(d)&&typeof d.date==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(d.date)}
+function afterLoad(){if(savedCur&&lvOf(savedCur)&&S.cur==="m0"&&!S.running){S.cur=savedCur;savedCur=null}
+  Object.keys(S.prog).forEach(k=>{const p=S.prog[k],L=lvOf(k);if(p&&p.won&&!S.best[k]&&L){S.best[k]={t:Math.max(1,Math.round(p.elapsed)),st:starsFor(L,p),h:hintsUsed(p),nh:hintsUsed(p)===0,nm:true,n5:L.locks.length>=5,c:1,at:today()};(p.solved||[]).forEach(i=>{(S.ever[k]||(S.ever[k]={}))[i]=L.locks[i].type})}});
+  checkBadges();save();show(S.view||"play");if(grownOK)showAnswers()}
+let dailyAt=0;
+function useDaily(arr){if(!Array.isArray(arr))return false;const ok=arr.filter(okDaily).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,14);if(!ok.length)return false;DAILY.length=0;ok.forEach(d=>DAILY.push(d));return true}
+function loadDaily(){dailyAt=Date.now();if(!APP)return fetch("daily.json",{cache:"no-store"}).then(r=>r.ok?r.json():[]).then(useDaily).catch(()=>{});
+  try{useDaily(JSON.parse(localStorage.getItem("cc-daily-cache")||"null"))}catch(e){}
+  if(!D.dailyUrl)return Promise.resolve();const ctl=typeof AbortController==="function"?new AbortController():null,tm=setTimeout(()=>ctl&&ctl.abort(),8000);
+  return fetch(D.dailyUrl+"?v="+Math.floor(Date.now()/36e5),{cache:"no-store",signal:ctl?ctl.signal:undefined}).then(r=>r.ok?r.json():null).then(arr=>{clearTimeout(tm);if(useDaily(arr)){try{localStorage.setItem("cc-daily-cache",JSON.stringify(DAILY))}catch(e){}}}).catch(()=>clearTimeout(tm))}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&Date.now()-dailyAt>36e5&&!S.running){const before=DAILY[0]&&DAILY[0].date;loadDaily().then(()=>{if((DAILY[0]&&DAILY[0].date)!==before)show(S.view)})}});
+function loadWorlds(){return fetch("worlds.json").then(r=>r.ok?r.json():null).then(o=>{if(!o||!Array.isArray(o.worlds))return;WORLDS.length=0;ADV.length=0;
+  Object.entries(o.cats||{}).forEach(([c,ts])=>ts.forEach(t=>TYPECAT[t]=c));
+  o.worlds.forEach((w,wi)=>{WORLDS.push({name:w.name,icon:w.icon,colour:w.colour,blurb:w.blurb,screen:w.screen});(w.levels||[]).forEach((l,li)=>{if(okLevel(l))ADV[wi*10+li]=Object.assign(l,{w:wi})})})}).catch(()=>{})}
+function appSetup(){if(!APP)return;newGate();$("gIn").setAttribute("inputmode","numeric");$("footNote").textContent="Robot Lab Breakout by Curiosity Cove. No ads, no accounts, and no personal information collected. Progress, stars, badges and leaderboard names stay on this device. Confetti by canvas-confetti (ISC) and sound effects by ZzFX (MIT).";$("grown").querySelector("summary").textContent="Grown-ups' corner: answers, levels, leaderboard names and reset"}
+function boot(d){appSetup();const saved=valid(d)?d:load();if(saved){S=Object.assign(fresh(),saved,{running:false});["best","ever","badges","f"].forEach(k=>{if(!S[k]||typeof S[k]!=="object")S[k]={}});if(!Array.isArray(S.board))S.board=[];if(!lvOf(S.cur)){savedCur=S.cur;S.cur="m0"}}
+  if(S.prog.m0&&S.prog.m0.won&&!S.xun)S.xun=1;if(!["play","map","ach","lb"].includes(S.view))S.view="play";
+  show(S.view==="play"?"play":S.view);Promise.all([loadDaily(),loadWorlds()]).then(afterLoad);initDB()}
+window.claude?.hot?.snapshot?.(()=>snap());
+window.claude?.hot?.ready?window.claude.hot.ready(boot):boot(window.claude?.hot?.data??null);
+}
+</script>
+<script>if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
+</body>
+</html>

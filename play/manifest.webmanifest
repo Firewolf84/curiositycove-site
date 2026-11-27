@@ -1,0 +1,34 @@
+{
+ "name": "Robot Lab Breakout",
+ "short_name": "Robot Lab",
+ "description": "Robot Lab Breakout: a free code-breaking escape game for kids aged 9 to 12. 104 levels, 37 kinds of coding puzzle and a new daily challenge. No ads, no sign-up.",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "any",
+ "background_color": "#ff7a1a",
+ "theme_color": "#ff7a1a",
+ "categories": [
+  "education",
+  "games",
+  "kids"
+ ],
+ "icons": [
+  {
+   "src": "icons/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "icons/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  },
+  {
+   "src": "icons/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}
