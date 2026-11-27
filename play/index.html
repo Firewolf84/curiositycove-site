@@ -4011,8 +4011,19 @@ ${"-".repeat(d.a.length + 2)}
 }
 </script>
 <script>if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {
-  }));
+  var hadSW = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener("controllerchange", function() {
+    if (hadSW && !window.__swr) {
+      window.__swr = 1;
+      location.reload();
+    }
+  });
+  window.addEventListener("load", function() {
+    navigator.serviceWorker.register("sw.js").then(function(r) {
+      r.update();
+    }).catch(function() {
+    });
+  });
 }
 </script>
 </body>

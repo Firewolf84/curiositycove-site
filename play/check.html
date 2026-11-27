@@ -1,0 +1,18 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Robot Lab Breakout: device check</title>
+<style>body{font:17px/1.5 -apple-system,system-ui,sans-serif;margin:0;padding:20px;max-width:720px}h1{font-size:26px}li{margin:4px 0}.ok{color:#2c7a12}.no{color:#c0282b;font-weight:700}button{font:700 18px sans-serif;padding:12px 18px;border-radius:12px;border:3px solid #1d1a2e;background:#ffd23f;margin:8px 8px 8px 0}</style></head><body>
+<h1>Robot Lab Breakout: device check</h1><p>Take a screenshot of this page and send it to Curiosity Cove if the game isn't working.</p><ul id="r"></ul>
+<button id="clear">Clear the game's saved copy</button><a href="./"><button>Back to the game</button></a><p id="m"></p>
+<script>
+var out=[];function add(n,v){out.push('<li class="'+(v?'ok':'no')+'">'+(v?'&#10004; ':'&#10008; ')+n+'</li>')}
+out.push('<li>Browser: '+navigator.userAgent.replace(/</g,'')+'</li>');out.push('<li>Screen: '+screen.width+' x '+screen.height+', window '+innerWidth+' x '+innerHeight+'</li>');
+add('JavaScript runs',true);
+try{eval('var a={b:1};var c=a?.b??2;');add('Modern JavaScript',true)}catch(e){add('Modern JavaScript ('+e.message+')',false)}
+try{localStorage.setItem('cc-test','1');localStorage.removeItem('cc-test');add('Saving progress (localStorage)',true)}catch(e){add('Saving progress (localStorage): '+e.message,false)}
+add('CSS variables',window.CSS&&CSS.supports('color','var(--x)'));add('CSS grid',window.CSS&&CSS.supports('display','grid'));
+add('Web Animations',!!document.body.animate);add('Sound (Web Audio)',!!(window.AudioContext||window.webkitAudioContext));
+add('Offline support (service worker)','serviceWorker' in navigator);add('Page controlled by offline copy: '+(navigator.serviceWorker&&navigator.serviceWorker.controller?'yes':'no'),true);
+fetch('worlds.json',{cache:'no-store'}).then(function(r){add('Game levels download (worlds.json): '+r.status,r.ok);draw()}).catch(function(e){add('Game levels download: '+e,false);draw()});
+fetch('../daily.json?x='+Date.now(),{cache:'no-store'}).then(function(r){add('Daily puzzle download: '+r.status,r.ok);draw()}).catch(function(e){add('Daily puzzle download: '+e,false);draw()});
+function draw(){document.getElementById('r').innerHTML=out.join('')}draw();
+document.getElementById('clear').onclick=function(){var m=document.getElementById('m');m.textContent='Clearing...';var p=[];if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)p.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}));if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}));Promise.all(p).then(function(){m.textContent='Done! Progress is kept. Tap Back to the game.'}).catch(function(e){m.textContent='Could not clear: '+e})};
+</script></body></html>
