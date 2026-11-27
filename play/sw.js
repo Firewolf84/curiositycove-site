@@ -1,5 +1,5 @@
 // Robot Lab Breakout offline support: game files come from the cache, the daily puzzle from the network when possible.
-const CACHE = "rlb-c19e27b73a";
+const CACHE = "rlb-ad0b18bd76";
 const FILES = ["./", "index.html", "worlds.json", "manifest.webmanifest", "fonts/Baloo2-700.ttf", "fonts/Baloo2-800.ttf", "fonts/Nunito-400.ttf", "fonts/Nunito-700.ttf", "fonts/Nunito-800.ttf", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
