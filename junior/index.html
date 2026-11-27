@@ -915,14 +915,151 @@ main {
     transition: none !important;
   }
 }
+#printView {
+  display: none;
+}
+@media print {
+  @page {
+    margin: 10mm;
+  }
+  body.printing > *:not(#printView) {
+    display: none !important;
+  }
+  body.printing #printView {
+    display: block;
+  }
+  body.printing {
+    background: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+#printView .ppage {
+  break-after: page;
+  page-break-after: always;
+}
+#printView .ph {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-bottom: 4px solid var(--ink);
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+}
+#printView .ph h1 {
+  margin: 0;
+  font-size: 30pt;
+}
+#printView .ph small {
+  font-size: 11pt;
+  color: #c4520c;
+}
+#printView .pname {
+  font-size: 15pt;
+}
+#printView .pname span {
+  display: inline-block;
+  width: 200px;
+  border-bottom: 3px solid var(--ink);
+}
+#printView .pq {
+  border: 4px solid var(--ink);
+  border-radius: 20px;
+  padding: 8px 12px;
+  margin: 0 0 10px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+#printView .pq h3 {
+  margin: 0 0 6px;
+  font-size: 16pt;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+#printView .pq h3 b {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--yellow);
+  border: 3px solid var(--ink);
+  flex: none;
+}
+#printView .stage {
+  border: 0;
+  padding: 0;
+  box-shadow: none;
+  min-height: 0;
+  background: none;
+  zoom: .6;
+}
+#printView button {
+  box-shadow: none !important;
+}
+#printView .ppe {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 10px;
+  align-content: start;
+}
+#printView .ppe .ph {
+  grid-column: 1/-1;
+}
+#printView .ppe .stage {
+  zoom: .66;
+}
+#printView .ppe .pbox {
+  flex-wrap: wrap;
+}
+#printView .ppe .pbox i {
+  width: 40px;
+  height: 40px;
+}
+#printView .ppe .pq {
+  padding: 6px 10px;
+  margin-bottom: 8px;
+}
+#printView .ppe .pq h3 {
+  font-size: 14pt;
+}
+#printView .pbox {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  justify-content: center;
+}
+#printView .pbox i {
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  background: #fff;
+}
+#printView .pq-path .stage > *:not(.grid) {
+  display: none;
+}
+#printView .pq-memory .mem button {
+  background: #fff;
+  border: 3px dashed var(--ink);
+}
+#printView .pq-memory .mem .fr {
+  display: flex;
+}
+#printView .pq-memory .mem .bk {
+  display: none;
+}
 </style>
 </head>
 <body>
+<div id="printView" aria-hidden="true"></div>
 <header class="bar">
   <a class="homebtn" href="../" aria-label="Curiosity Cove home page">🏠</a>
   <button type="button" data-go="map" aria-label="Islands">🏝️</button>
   <button type="button" data-go="book" aria-label="Sticker book">📒</button>
   <button type="button" id="snd" aria-label="Sound on">🔊</button>
+  <button type="button" id="prt" aria-label="Print activity sheets">🖨️</button>
   <span class="stars" id="stars">⭐ 0</span>
 </header>
 <main id="view"></main>
@@ -2435,8 +2572,74 @@ let zzfxV = 0.3, zzfxX = null, zzfx = (
     if (picks.indexOf(first) >= 0) picks.splice(picks.indexOf(first), 1, "path");
     var types = shuffle([first].concat(picks), r);
     return types.map(function(t) {
-      return GEN[t](r, isl, ex);
+      var q = GEN[t](r, isl, ex);
+      q.type = t;
+      return q;
     });
+  }
+  var PTXT = {
+    path: ["Draw the arrows BOLT needs to reach the battery. Go round the rocks!", 8],
+    debug: ["One arrow in BOLT's plan is wrong. Circle it!", 0],
+    pattern: ["What comes next? Circle it.", 0],
+    count: ["Count them. Circle the right number.", 0],
+    add: ["Add them up. Circle the right answer.", 0],
+    odd: ["Circle the one that doesn't belong.", 0],
+    order: ["Write 1, 2, 3\u2026 under them, from the smallest to the biggest.", 0],
+    copy: ["Colour the empty squares so they match the picture.", 0],
+    memory: ["Cut out the cards. Turn them face down and play matching pairs with a friend!", 0],
+    loop: ["Circle the row that shows what BOLT's code does.", 0],
+    lights: ["Count the dots on the yellow cards only. Circle the total.", 0]
+  };
+  function printLevels(age, list) {
+    var pv = $("printView"), h = "", noop = function() {
+    };
+    pv.innerHTML = "";
+    list.forEach(function(n) {
+      var isl = ISLANDS[Math.floor(n / 10)], pz = buildLevel(age, n);
+      var page = document.createElement("section");
+      page.className = "ppage pp" + age;
+      page.innerHTML = `<div class="ph"><div><small>BOLT's Little Lab \xB7 ` + esc(isl.name) + " \xB7 Level " + (n % 10 + 1) + " \xB7 " + (age === "s" ? "Ages 5\u20136" : "Ages 7\u20138") + "</small><h1>" + isl.e + " Level " + (n + 1) + '</h1></div><div class="pname">Name: <span></span></div></div>';
+      pz.forEach(function(p, i) {
+        var t = PTXT[p.type] || [p.say, 0], box = document.createElement("div");
+        box.className = "pq pq-" + p.type;
+        box.innerHTML = "<h3><b>" + (i + 1) + "</b> " + esc(t[0]) + "</h3>";
+        var st = document.createElement("div");
+        st.className = "stage";
+        box.appendChild(st);
+        try {
+          p.mount(st, noop, noop);
+        } catch (e) {
+        }
+        st.onclick = null;
+        if (t[1]) {
+          var w = document.createElement("div");
+          w.className = "pbox";
+          w.innerHTML = new Array(t[1] + 1).join("<i></i>");
+          box.appendChild(w);
+        }
+        page.appendChild(box);
+      });
+      pv.appendChild(page);
+    });
+    document.body.classList.add("printing");
+    var done = function() {
+      document.body.classList.remove("printing");
+      pv.innerHTML = "";
+    };
+    if ("onafterprint" in window) {
+      var f = function() {
+        window.removeEventListener("afterprint", f);
+        setTimeout(done, 300);
+      };
+      window.addEventListener("afterprint", f);
+    } else setTimeout(done, 3e3);
+    setTimeout(function() {
+      try {
+        window.print();
+      } catch (e) {
+        done();
+      }
+    }, 200);
   }
   var cur = null;
   function setBand(c) {
@@ -2517,8 +2720,17 @@ let zzfxV = 0.3, zzfxX = null, zzfx = (
         $("gmsg").textContent = "That's not right.";
         return;
       }
-      $("gbox").innerHTML = `<div class="gbox"><p>Who's playing? Each age has its own progress.</p><div class="acts" style="justify-content:flex-start"><button type="button" data-setage="s">\u{1F423} Ages 5\u20136</button><button type="button" data-setage="e">\u{1F680} Ages 7\u20138</button></div><p>Unlock every level for this age, or start again:</p><div class="acts" style="justify-content:flex-start"><button type="button" id="gall">\u{1F513} Unlock all</button><button type="button" id="greset">\u{1F5D1}\uFE0F Reset progress</button></div></div>`;
+      $("gbox").innerHTML = `<div class="gbox"><p>Who's playing? Each age has its own progress.</p><div class="acts" style="justify-content:flex-start"><button type="button" data-setage="s">\u{1F423} Ages 5\u20136</button><button type="button" data-setage="e">\u{1F680} Ages 7\u20138</button></div><p>Unlock every level for this age, or start again:</p><p>Print activity sheets (one page per level) for this age:</p><div class="acts" style="justify-content:flex-start">` + ISLANDS.map(function(x, i) {
+        return '<button type="button" data-pisl="' + i + '">\u{1F5A8}\uFE0F ' + x.e + " " + esc(x.name) + "</button>";
+      }).join("") + '</div><div class="acts" style="justify-content:flex-start"><button type="button" id="gall">\u{1F513} Unlock all</button><button type="button" id="greset">\u{1F5D1}\uFE0F Reset progress</button></div></div>';
       $("gbox").onclick = function(ev) {
+        var pi = ev.target.closest("[data-pisl]");
+        if (pi) {
+          var L = [];
+          for (var q = 0; q < 10; q++) L.push(+pi.dataset.pisl * 10 + q);
+          printLevels(J.age, L);
+          return;
+        }
         var s = ev.target.closest("[data-setage]");
         if (s) {
           J.age = s.dataset.setage;
@@ -2651,6 +2863,15 @@ let zzfxV = 0.3, zzfxX = null, zzfx = (
     view.onclick = null;
   }
   document.querySelector(".bar").onclick = function(ev) {
+    if (ev.target.closest("#prt")) {
+      sfx("tap");
+      if (!J.age) return;
+      printLevels(J.age, [cur && view.querySelector(".play") ? cur.n : (function() {
+        for (var i = 0; i < 50; i++) if (!isDone(J.age, i)) return i;
+        return 49;
+      })()]);
+      return;
+    }
     var g = ev.target.closest("[data-go]");
     if (g) {
       sfx("tap");
