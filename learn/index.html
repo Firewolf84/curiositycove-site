@@ -5796,7 +5796,7 @@ function viewStart() {
   if (S.profiles.length) {
     return `<div class="sitecorner"><a class="back sitehome" href="../" aria-label="Curiosity Cove home page">🏠</a></div><div style="padding-top:4px"><h1>Curiosity Cove</h1><p class="mut">Who's learning today?</p>
     <div class="list">${S.profiles.map(p => `<button class="item" data-act="pickp" data-id="${p.id}"><span class="ic">${p.av}</span><span class="t"><b>${esc(p.name)}</b><span>${CUR[p.cur].flag} ${CUR[p.cur].name} · ${CUR[p.cur].grades[p.grade]}</span></span><span class="pill">⭐ ${p.stars || 0}</span></button>`).join('')}</div>
-    <button class="btn alt" data-act="newchild">+ Add a child</button></div>`;
+    <button class="btn coral" data-act="family">👪 Parents: see your children's progress</button><button class="btn alt" data-act="newchild">+ Add a child</button></div>`;
   }
   return `<div class="sitecorner"><a class="back sitehome" href="../" aria-label="Curiosity Cove home page">🏠</a></div><div class="hero" style="margin-top:8px">${scene()}<div class="hi"><h1>Curiosity Cove</h1></div></div>
   <h2 style="margin-top:20px">Learning that feels like playing</h2>
@@ -5893,27 +5893,27 @@ function answer(i, btn) {
 }
 function nextQ() { run.i++; run.first = true; if (run.i >= run.qs.length) return finish(); render(); setTimeout(speakQ, 250); }
 function finishStars(st) {
-  const p = P(); p.minutes = (p.minutes || 0) + (Date.now() - run.t0) / 60000; p.history = p.history || [];
+  const p = P(); p.minutes = (p.minutes || 0) + (Date.now() - run.t0) / 60000; logDay(p, (Date.now() - run.t0) / 60000, 1); p.history = p.history || [];
   const k = skill(p, run.act.id); k.best = Math.max(k.best, st); k.plays++; k.a += 3; k.c += st; p.stars = (p.stars || 0) + st;
-  p.history.unshift({ t: Date.now(), name: run.act.t, score: starStr(st) }); p.history = p.history.slice(0, 40);
+  p.history.unshift({ t: Date.now(), name: run.act.t, score: starStr(st), id: run.act.id, s: run.act.s }); p.history = p.history.slice(0, 200);
   save(); go('result', { st });
 }
 function finish(scoreOverride) {
   const p = P(), total = run ? run.qs.length : 5, correct = scoreOverride !== undefined ? scoreOverride : run.correct;
   const mins = run ? (Date.now() - run.t0) / 60000 : 1;
-  p.minutes = (p.minutes || 0) + mins;
+  p.minutes = (p.minutes || 0) + mins; logDay(p, mins, 1);
   p.history = p.history || [];
   if (run.mode === 'assess') {
     const pct = Math.round(100 * correct / total), by = {};
     for (const [s, v] of Object.entries(run.bySubj)) by[s] = Math.round(100 * v[0] / v[1]);
     p.assess = p.assess || []; p.assess.push({ t: Date.now(), pct, by, cur: p.cur });
-    p.history.unshift({ t: Date.now(), name: 'Mixed quick check', score: `${pct}%` });
+    p.history.unshift({ t: Date.now(), name: 'Mixed quick check', score: `${pct}%`, s: 'assess' }); p.history = p.history.slice(0, 200);
     save(); return go('assessResult', { pct, by });
   }
   const fr = correct / total, st = fr >= 0.9 ? 3 : fr >= 0.7 ? 2 : fr >= 0.4 ? 1 : 0;
   p.recent = p.recent || {}; p.recent[run.act.id] = run.qs.map(sig).concat(p.recent[run.act.id] || []).slice(0, 30);
   const k = skill(p, run.act.id); k.best = Math.max(k.best, st); k.plays++;
-  p.history.unshift({ t: Date.now(), name: run.act.t, score: `${correct}/${total}` }); p.history = p.history.slice(0, 40);
+  p.history.unshift({ t: Date.now(), name: run.act.t, score: `${correct}/${total}`, id: run.act.id, s: run.act.s }); p.history = p.history.slice(0, 200);
   if (scoreOverride !== undefined) p.stars = (p.stars || 0) + st;
   save(); go('result', { st, correct, total });
 }
@@ -6261,9 +6261,9 @@ function finishPaper() {
     else if (it.kind === 'essay') { const m = markEssay(it.task, a); rec.items.push({ sec: 'D', marks: m.marks, max: m.max, ticks: m.ticks, prompt: it.task.prompt, ans: a || '', model: it.task.model || '' }); }
     else { const m = markSentence(it.task, a); rec.items.push({ sec: 'C', marks: m.marks, max: m.max, ticks: m.ticks, prompt: it.task.prompt, ans: a || '', model: it.task.model }); } });
   scorePaper(rec);
-  p.minutes = (p.minutes || 0) + (Date.now() - paper.t0) / 60000;
+  p.minutes = (p.minutes || 0) + (Date.now() - paper.t0) / 60000; logDay(p, (Date.now() - paper.t0) / 60000, 1);
   p.papers = (p.papers || []).concat(rec).slice(-40);
-  p.history = p.history || []; p.history.unshift({ t: rec.t, name: paperTitle(rec.s, rec.g), score: rec.pct + '%' }); p.history = p.history.slice(0, 40);
+  p.history = p.history || []; p.history.unshift({ t: rec.t, name: paperTitle(rec.s, rec.g), score: rec.pct + '%', s: rec.s }); p.history = p.history.slice(0, 200);
   save(); paper = null; go('paperResult', { t: rec.t });
 }
 XVIEWS.paperResult = () => {
@@ -6673,12 +6673,13 @@ function viewCompass() {
 }
 
 /* ----- parents ----- */
-function viewGate() { const a = rint(11, 19), b = rint(5, 9); ctx.ans = a + b; return top('👪 Grown-ups only') + `<div class="card"><p>Please solve this to continue:</p><h2>${a} + ${b} = ?</h2><input type="number" id="gate" inputmode="numeric" style="margin-top:10px"><button class="btn" data-act="gate">Enter</button></div>`; }
+function viewGate() { const a = rint(11, 19), b = rint(5, 9); ctx.ans = a + b; return top('👪 Grown-ups only', ctx.to === 'family' && famFrom === 'start' ? 'start' : 'home') + `<div class="card"><p>Please solve this to continue:</p><h2>${a} + ${b} = ?</h2><input type="number" id="gate" inputmode="numeric" style="margin-top:10px"><button class="btn" data-act="gate">Enter</button></div>`; }
 function viewParent() {
   const p = P(), c = CUR[p.cur];
   const needs = ACTS.filter(a => { const k = (p.skills || {})[a.id]; return k && k.a >= 5 && k.c / k.a < 0.6; });
   return top('👪 Grown-ups corner') + `<div class="card"><div class="row"><span style="font-size:40px">${p.av}</span><div style="flex:1"><h2>${esc(p.name)}</h2><span class="small mut">${c.full} · ${c.grades[p.grade]}</span></div><span class="pill">⭐ ${p.stars || 0}</span></div>
   <div class="row" style="margin-top:12px;justify-content:space-around;text-align:center"><div><div class="lvl" style="font-size:30px">${Math.round(p.minutes || 0)}</div><span class="small mut">minutes</span></div><div><div class="lvl" style="font-size:30px">${(p.history || []).length}</div><span class="small mut">activities</span></div><div><div class="lvl" style="font-size:30px">${(p.assess || []).length ? p.assess[p.assess.length - 1].pct + '%' : '–'}</div><span class="small mut">last assessment</span></div></div></div>
+  <button class="btn coral" data-act="fam-open">👪 Progress for ${S.profiles.length > 1 ? 'all your children' : esc(p.name)}: reports and printouts</button>
   <div class="card"><h3>Mastery by subject</h3>${SUBJ.filter(s => actsFor(s.id, p.grade).length && subjShown(s, p)).map(s => { const ids = actsFor(s.id, p.grade).map(a => a.id), m = mastery(p, ids), pr = subjProgress(p, s.id); return `<div style="margin-top:10px"><div class="row" style="justify-content:space-between"><b class="small">${s.icon} ${sName(s.id)}</b><span class="small mut">${m}% correct · ${pr}% of topics tried</span></div><div class="bar" style="margin-top:4px"><i style="width:${m}%;background:${s.col}"></i></div></div>`; }).join('')}</div>
   <div class="card"><h3>Needs practice</h3><p class="small">${needs.length ? needs.map(a => `${a.ic} ${a.t}`).join(' · ') : 'Nothing flagged yet. Topics show here after 5+ tries below 60%.'}</p></div>
   <div class="card"><h3>Recent activity</h3>${(p.history || []).length ? `<table>${p.history.slice(0, 8).map(h => `<tr><td>${esc(h.name)}</td><td class="n">${esc(h.score)}</td><td class="n small mut">${new Date(h.t).toLocaleDateString()}</td></tr>`).join('')}</table>` : '<p class="small mut">No activities yet.</p>'}</div>
@@ -6701,7 +6702,7 @@ function viewParent() {
 
 /* ---------- render + events ---------- */
 function render() {
-  if (screen !== 'start' && screen !== 'onboard' && !P()) screen = 'start';
+  if (screen !== 'start' && screen !== 'onboard' && screen !== 'gate' && screen !== 'family' && screen !== 'kidReport' && !P()) screen = 'start';
   const V = { start: viewStart, onboard: viewOnboard, home: viewHome, subject: viewSubject, quiz: viewQuiz, result: viewResult, assess: viewAssessIntro, assessResult: viewAssessResult, trace: viewTrace, learn: viewLearn, order: viewOrder, pixel: viewPixel, draw: viewDraw, rhythm: viewRhythm, move: viewMove, robot: viewRobot, compass: viewCompass, gate: viewGate, parent: viewParent };
   app.innerHTML = (V[screen] || XVIEWS[screen] || viewHome)();
   if (screen === 'trace') setupPad('#pad', TRACE[ctx.i || 0]);
@@ -6808,7 +6809,7 @@ app.addEventListener('click', e => {
     case 'ccat': ctx.cat = b.dataset.v; ctx.q = ''; ctx.pick = true; return render();
     case 'setgoal': p.goal = b.dataset.v; save(); toast('Dream job saved!'); ctx.goal = undefined; return render();
     case 'parent': return go('gate');
-    case 'gate': if (+$('#gate').value === ctx.ans) return go('parent'); toast('Not quite, try again'); return go('gate');
+    case 'gate': if (+$('#gate').value === ctx.ans) return go(ctx.to || 'parent'); toast('Not quite, try again'); return go('gate', { to: ctx.to });
     case 's-save': { const nc = $('#s-cur').value; p.cur = nc; p.grade = +$('#s-grade').value || 0; p.goal = $('#s-goal').value; if ($('#s-lang2')) p.lang2 = $('#s-lang2').value; S.sound = $('#s-sound').checked; if ($('#s-voice')) { S.voice = $('#s-voice').checked; voxApplyClass(); if (!S.voice) hush(); } p.mode = (document.querySelector('input[name=s-mode]:checked') || {}).value || 'free'; save(); toast(`Saved: ${CUR[nc].name} · ${p.mode === 'structured' ? 'Guided path' : 'Explore mode'}`); return render(); }
     case 'reset': if (b.dataset.sure) { p.skills = {}; p.history = []; p.assess = []; p.stars = 0; p.minutes = 0; save(); toast('Progress reset'); return render(); } b.dataset.sure = '1'; b.textContent = 'Tap again to confirm reset'; return;
   }
@@ -7167,7 +7168,7 @@ EXT['w-adj'] = b => { const r = ctx.res, cur = r.override !== undefined ? r.over
 EXT['w-skip'] = () => { const it = ctx.items[ctx.i]; ctx.max += it.kind === 'mq' ? 2 : it.w.pts.length; ctx.i++; ctx.res = null; ctx.ans = ''; render(); };
 EXT['w-next'] = () => { const r = ctx.res; ctx.got += r.override !== undefined ? r.override : r.marks; ctx.max += r.max; ctx.i++; ctx.res = null; ctx.ans = '';
   if (ctx.i >= ctx.items.length) { const p = P(), pct = ctx.max ? Math.round(100 * ctx.got / ctx.max) : 0; p.written = p.written || {}; const o = p.written[ctx.act.id] || {}; p.written[ctx.act.id] = { best: Math.max(o.best || 0, pct), last: pct, t: Date.now() };
-    p.history = p.history || []; p.history.unshift({ t: Date.now(), name: '✍️ ' + ctx.act.t, score: pct + '%' }); p.history = p.history.slice(0, 40); p.minutes = (p.minutes || 0) + (Date.now() - ctx.t0) / 60000; save(); }
+    p.history = p.history || []; p.history.unshift({ t: Date.now(), name: '✍️ ' + ctx.act.t, score: pct + '%', id: ctx.act.id, s: ctx.act.s }); p.history = p.history.slice(0, 200); p.minutes = (p.minutes || 0) + (Date.now() - ctx.t0) / 60000; logDay(p, (Date.now() - ctx.t0) / 60000, 1); save(); }
   render(); window.scrollTo(0, 0); };
 const wBtn = a => hasWritten(a) ? `<button class="btn alt" data-act="w-start" data-id="${a.id}">✍️ Written answers${wqFor(a).length ? ` (${wqFor(a).length})` : ' (type your answers)'}</button>` : '';
 /* ===== Written answers: Physical Sciences Gr 10–12 ===== */
@@ -10606,6 +10607,66 @@ Object.assign(ILL, {
   p3_ls12_humanevo: () => [ilRow([['🦴', 'fossils'], ['🧬', 'DNA'], ['🪨', 'stone tools']], 'Evidence for human evolution: fossils, DNA and stone tools'), ilSkulls(), ilTimeline([[0, 'Australopithecus', '4 to 2 mya', '#F5B041'], [0.36, 'Homo habilis', 'about 2,4 mya', '#58D68D'], [0.66, 'Homo erectus', 'about 1,9 mya', '#5DADE2'], [1, 'Homo sapiens', '300 000 years ago', '#AF7AC5']], 'mya = million years ago (not to scale)', 'Some human relatives through time: Australopithecus 4 to 2 million years ago, Homo habilis about 2.4 million, Homo erectus about 1.9 million, Homo sapiens 300 000 years ago')],
   p3_ls12_respond: () => [ilTable([['hormone', 'what it does'], ['auxins', 'make cells grow longer'], ['gibberellins', 'germination, stem growth'], ['abscisic acid', 'keeps seeds dormant']], null, 'Plant hormones: auxins make cells grow longer, gibberellins help germination and stem growth, abscisic acid keeps seeds dormant', [116, 190]), ilTropism(), ilRow([['🌵', 'sharp spines'], ['🌿', 'stinging hairs'], ['🌳', 'thick bark'], ['🍂', 'bad taste']], 'Plants defend themselves with spines, stinging hairs, thick bark and a bad taste')]
 });
+
+/* ---------- v41: family progress page for parents ---------- */
+function dayKey(t) { const d = new Date(t || Date.now()); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function logDay(p, mins, n) { try { p.days = p.days || {}; const k = dayKey(), o = p.days[k] || { m: 0, n: 0 }; o.m = Math.round((o.m + Math.max(0, Math.min(+mins || 0, 120))) * 10) / 10; o.n += n || 0; p.days[k] = o; const ks = Object.keys(p.days).sort(); if (ks.length > 400) ks.slice(0, ks.length - 400).forEach(x => { delete p.days[x]; }); } catch (e) {} }
+let famFrom = 'start';
+const withKid = (k, fn) => { const was = S.active; S.active = k.id; try { return fn(); } finally { S.active = was; } };
+const agoTxt = t => { if (!t) return 'not yet'; const d = Math.round((new Date(dayKey()) - new Date(dayKey(t))) / 864e5); return d <= 0 ? 'today' : d === 1 ? 'yesterday' : d + ' days ago'; };
+const zaDate = (t, o) => { try { return new Date(t).toLocaleDateString('en-ZA', o || { day: 'numeric', month: 'short' }); } catch (e) { return dayKey(t); } };
+const zaTime = t => { try { return new Date(t).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } };
+function kidStats(k) { return withKid(k, () => {
+  const hist = (k.history || []).slice().sort((x, y) => y.t - x.t), sk = k.skills || {}, wr = k.written || {};
+  const rows = SUBJ.filter(s => subjShown(s, k) && actsFor(s.id, k.grade).length).map(s => { const acts = actsFor(s.id, k.grade), ids = acts.map(a => a.id), ws = ids.map(id => wr[id]).filter(Boolean);
+    return { s, name: sName(s.id), acts, done: acts.filter(a => isDone(k, a.id)).length, total: acts.length, m: mastery(k, ids), tried: ids.some(id => sk[id] && sk[id].a > 0), w: ws.length ? Math.round(ws.reduce((x, o) => x + (o.best || 0), 0) / ws.length) : null, wn: ws.length }; });
+  const all = rows.reduce((x, r) => x + r.total, 0), done = rows.reduce((x, r) => x + r.done, 0), needs = [];
+  rows.forEach(r => r.acts.forEach(a => { const q = sk[a.id], w = wr[a.id]; if (/^chal_/.test(a.id)) return; if (q && q.a >= 5 && q.c / q.a < 0.6) needs.push({ a, s: r.s, why: Math.round(100 * q.c / q.a) + '% right' }); else if (w && w.best < 50) needs.push({ a, s: r.s, why: 'written answers ' + w.best + '%' }); }));
+  const now = Date.now(), dk = {}; hist.forEach(h => { const d = dayKey(h.t); dk[d] = (dk[d] || 0) + 1; });
+  const days = []; for (let i = 13; i >= 0; i--) { const t = now - i * 864e5, d = dayKey(t), lg = (k.days || {})[d]; days.push({ d, t, n: Math.max(lg ? lg.n : 0, dk[d] || 0), m: lg ? lg.m : 0 }); }
+  const d7 = days.slice(7), hasMin = !!k.days;
+  let streak = 0; for (let i = 0; i < 400; i++) { const d = dayKey(now - i * 864e5), on = (dk[d] || 0) > 0 || (((k.days || {})[d] || {}).n || 0) > 0; if (on) streak++; else if (i > 0) break; }
+  return { rows, all, done, pct: all ? Math.round(100 * done / all) : 0, needs, days, d7, wkN: d7.reduce((x, o) => x + o.n, 0), wkM: d7.reduce((x, o) => x + o.m, 0), act7: d7.filter(o => o.n > 0 || o.m > 0).length, act14: days.filter(o => o.n > 0 || o.m > 0).length, m14: days.reduce((x, o) => x + o.m, 0), hasMin, streak, last: hist.length ? hist[0].t : 0, hist };
+}); }
+function dayBars(days, label) { const n = days.length, W = n > 7 ? 24 : 40, bw = n > 7 ? 16 : 24, mx = Math.max(1, ...days.map(o => o.n)), base = 60;
+  return `<svg viewBox="0 0 ${n * W} ${n > 7 ? 92 : 80}" style="width:100%;max-width:${n > 7 ? 400 : 340}px;display:block;margin:10px auto 0" role="img" aria-label="${esc(label)}">` + days.map((o, i) => { const h = o.n ? Math.max(6, Math.round(40 * o.n / mx)) : 3, x = i * W + (W - bw) / 2, cx = i * W + W / 2, dt = new Date(o.t);
+    return `<rect x="${x}" y="${base - h}" width="${bw}" height="${h}" rx="4" style="fill:${o.n ? 'var(--sea)' : 'var(--line)'}"/>` + (o.n ? `<text x="${cx}" y="${base - h - 4}" text-anchor="middle" style="font:800 11px Nunito,sans-serif;fill:var(--ink)">${o.n}</text>` : '') + `<text x="${cx}" y="${base + 14}" text-anchor="middle" style="font:700 10px Nunito,sans-serif;fill:var(--mut)">${'SMTWTFS'[dt.getDay()]}</text>` + (n > 7 ? `<text x="${cx}" y="${base + 26}" text-anchor="middle" style="font:700 9px Nunito,sans-serif;fill:var(--mut)">${dt.getDate()}</text>` : '');
+  }).join('') + '</svg>'; }
+const kpi = (v, t) => `<div style="flex:1;min-width:0"><div class="lvl" style="font-size:26px">${v}</div><span class="small mut">${t}</span></div>`;
+function famCard(k) { const st = kidStats(k), c = CUR[k.cur] || CUR.caps;
+  return `<div class="card"><div class="row"><span style="font-size:40px">${k.av}</span><div style="flex:1"><h3>${esc(k.name)}</h3><span class="small mut">${c.flag} ${c.name} · ${c.grades[k.grade]}</span></div><span class="pill">⭐ ${k.stars || 0}</span></div>
+  <div style="margin-top:14px"><div class="row" style="justify-content:space-between;gap:8px"><b class="small">This year's lessons</b><span class="small mut">${st.done} of ${st.all} done · ${st.pct}%</span></div><div class="bar" style="margin-top:4px;height:14px"><i style="width:${st.pct}%"></i></div></div>
+  <div class="row" style="margin-top:12px;justify-content:space-around;text-align:center;align-items:flex-start;gap:6px">${kpi(st.act7 + '/7', 'days active this week')}${kpi(st.wkN, 'activities this week')}${st.hasMin ? kpi(Math.round(st.wkM), 'minutes this week') : kpi(Math.round(k.minutes || 0), 'minutes so far')}</div>
+  ${dayBars(st.d7, 'Activities each day for the last 7 days')}
+  <p class="small" style="margin:6px 0 0;text-align:center">Last active: <b>${agoTxt(st.last)}</b>${st.streak > 1 ? ` · 🔥 ${st.streak} days in a row` : ''}</p>
+  <div style="margin-top:8px">${st.rows.map(r => `<div style="margin-top:9px"><div class="row" style="justify-content:space-between;gap:8px"><span class="small"><b>${r.s.icon} ${esc(r.name)}</b></span><span class="small mut" style="white-space:nowrap">${r.done}/${r.total}${r.tried ? ' · ' + r.m + '% right' : ''}</span></div><div class="bar" style="margin-top:3px;height:8px"><i style="width:${r.total ? Math.round(100 * r.done / r.total) : 0}%;background:${r.s.col}"></i></div></div>`).join('')}</div>
+  ${st.needs.length ? `<p class="small" style="margin:14px 0 0"><b>Practise together</b></p><div class="chips">${st.needs.slice(0, 4).map(n => `<span class="chip">${n.a.ic} ${esc(n.a.t)}</span>`).join('')}${st.needs.length > 4 ? `<span class="chip">+${st.needs.length - 4} more</span>` : ''}</div>` : ''}
+  <button class="btn" data-act="fam-report" data-id="${k.id}">📄 Full report for ${esc(k.name)}</button>
+  <div class="row" style="gap:10px"><button class="btn alt" data-act="pickp" data-id="${k.id}" style="flex:1;font-size:17px">▶️ Learn</button><button class="btn alt" data-act="fam-set" data-id="${k.id}" style="flex:1;font-size:17px">⚙️ Settings</button></div></div>`; }
+XVIEWS.family = () => { const back = famFrom === 'parent' && P() ? 'parent' : famFrom === 'start' || !P() ? 'start' : 'home';
+  return top('👪 Family progress', back) + `<p class="small mut" style="margin:2px 0 0">How each child is doing this year. Open a full report to see every topic and score, add your notes and print a record.</p>` + (S.profiles.length ? S.profiles.map(famCard).join('') : '<div class="card"><p>No children yet. Add one to get started.</p></div>') + `<button class="btn alt" data-act="newchild">+ Add a child</button><p class="small mut" style="margin-top:14px">Progress is saved on this device. If a child also learns on another device, that device keeps its own record.</p>`; };
+XVIEWS.kidReport = () => { const k = S.profiles.find(x => x.id === ctx.pid); if (!k) return XVIEWS.family();
+  return withKid(k, () => { const st = kidStats(k), c = CUR[k.cur] || CUR.caps, sk = k.skills || {}, wr = k.written || {}, as = (k.assess || []).slice(-8).reverse(), pp = (k.papers || []).slice(-8).reverse();
+    const topic = a => { const q = sk[a.id], w = wr[a.id], best = q ? q.best || 0 : 0; return `<tr><td>${a.ic} ${esc(a.t)}</td><td class="n" style="color:var(--sun)">${best ? starStr(best) : q && q.a ? '<span class="small mut">tried</span>' : '<span class="small mut">–</span>'}</td><td class="n small">${w ? '✍️ ' + w.best + '%' : ''}</td></tr>`; };
+    return top('📄 Progress report', 'family') + `<div class="card"><div class="row"><span style="font-size:44px">${k.av}</span><div style="flex:1"><h2>${esc(k.name)}</h2><span class="small mut">${c.full} · ${c.grades[k.grade]}</span><br><span class="small mut">Report date: ${zaDate(Date.now(), { day: 'numeric', month: 'long', year: 'numeric' })}</span></div></div>
+    <div class="bar" style="margin-top:14px;height:14px"><i style="width:${st.pct}%"></i></div><p class="small" style="margin:4px 0 0"><b>${st.done} of ${st.all}</b> of this year's lessons done (${st.pct}%)</p>
+    <div class="row" style="margin-top:12px;justify-content:space-around;text-align:center;align-items:flex-start;gap:6px">${kpi(Math.round(k.minutes || 0), 'minutes learning')}${kpi(k.stars || 0, 'stars')}${kpi(as.length ? as[0].pct + '%' : '–', 'last quick check')}${kpi(pp.length, 'papers written')}</div></div>
+    <div class="card"><h3>Last 14 days</h3>${dayBars(st.days, 'Activities each day for the last 14 days')}<p class="small mut" style="margin:6px 0 0;text-align:center">${st.act14} of 14 days active · ${st.days.reduce((x, o) => x + o.n, 0)} activities${st.hasMin ? ' · ' + Math.round(st.m14) + ' minutes' : ''}</p></div>
+    <div class="card"><h3>Subjects</h3><table><tr><th>Subject</th><th class="n">Done</th><th class="n">Right</th><th class="n">Written</th></tr>${st.rows.map(r => `<tr><td>${r.s.icon} ${esc(r.name)}</td><td class="n">${r.done}/${r.total}</td><td class="n">${r.tried ? r.m + '%' : '–'}</td><td class="n">${r.w !== null ? r.w + '%' : '–'}</td></tr>`).join('')}</table><p class="small mut" style="margin:8px 0 0">"Right" is the share of quiz answers right first time. "Written" is the average mark for written answers; the app marks key points, so read these with your child.</p></div>
+    <div class="card"><h3>Practise together</h3>${st.needs.length ? `<table>${st.needs.map(n => `<tr><td>${n.a.ic} ${esc(n.a.t)}<br><span class="small mut">${n.s.icon} ${esc(sName(n.s.id))}</span></td><td class="n small">${esc(n.why)}</td></tr>`).join('')}</table>` : '<p class="small mut" style="margin:4px 0 0">Nothing flagged. Topics show here after 5 or more tries below 60%, or written answers below 50%.</p>'}</div>
+    <div class="card"><h3>Every topic</h3><p class="small mut" style="margin:4px 0 0">★ = stars earned, ✍️ = best written mark. Tap a subject to open it.</p>${st.rows.map(r => `<details style="margin-top:10px"><summary style="cursor:pointer;font-weight:800;min-height:36px">${r.s.icon} ${esc(r.name)} <span class="small mut">· ${r.done}/${r.total}</span></summary><table>${r.acts.map(topic).join('')}</table></details>`).join('')}</div>
+    ${as.length || pp.length ? `<div class="card"><h3>Checks and papers</h3><table>${as.map(x => `<tr><td>⚡ Mixed quick check</td><td class="n small mut">${zaDate(x.t)}</td><td class="n">${x.pct}%</td></tr>`).join('')}${pp.map(x => `<tr><td>📝 ${esc(paperTitle(x.s, x.g))}</td><td class="n small mut">${zaDate(x.t)}</td><td class="n">${x.pct}%</td></tr>`).join('')}</table></div>` : ''}
+    <div class="card"><h3>Recent activity</h3>${st.hist.length ? `<table>${st.hist.slice(0, 20).map(h => `<tr><td>${esc(h.name)}</td><td class="n small mut">${zaDate(h.t)} ${zaTime(h.t)}</td><td class="n">${esc(h.score)}</td></tr>`).join('')}</table>` : '<p class="small mut" style="margin:4px 0 0">No activities yet.</p>'}</div>
+    <div class="card"><h3>Notes from the grown-up</h3><p class="small mut" style="margin:4px 0 8px">Observations, books read, outings and projects. They print with the report.</p><textarea id="kr-note" rows="5" style="width:100%;font:inherit;font-size:16px;padding:12px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink)">${esc(k.note || '')}</textarea><button class="btn alt" data-act="kr-note">Save notes</button></div>
+    <button class="btn coral" data-act="kr-print">🖨️ Print or save as PDF</button><button class="btn alt" data-act="kr-back">‹ Back to family progress</button>
+    <p class="small mut" style="margin-top:14px">Keep printed reports with your child's work as part of your home-education records.</p>`; }); };
+EXT['family'] = () => { famFrom = 'start'; go('gate', { to: 'family' }); };
+EXT['fam-open'] = () => { famFrom = 'parent'; go('family'); };
+EXT['fam-report'] = b => go('kidReport', { pid: b.dataset.id });
+EXT['fam-set'] = b => { S.active = b.dataset.id; save(); go('parent'); };
+EXT['kr-back'] = () => go('family');
+EXT['kr-note'] = () => { const k = S.profiles.find(x => x.id === ctx.pid), el = $('#kr-note'); if (k && el) { k.note = el.value.slice(0, 4000); save(); toast('Notes saved'); } };
+EXT['kr-print'] = () => { const k = S.profiles.find(x => x.id === ctx.pid), el = $('#kr-note'); if (k && el && el.value !== (k.note || '')) { k.note = el.value.slice(0, 4000); save(); } document.querySelectorAll('details').forEach(d => { d.open = true; }); setTimeout(() => { try { window.print(); } catch (e) {} }, 60); };
 
 if (S.active && P()) screen = 'home';
 render();
